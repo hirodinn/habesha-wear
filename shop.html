@@ -55,20 +55,30 @@
 
         <!-- Category Filter Tabs -->
         <div class="category-filters">
-          <button class="filter-btn active" data-category="women">
-            Women's Kemis
-          </button>
-          <button class="filter-btn" data-category="men">
-            Men's Traditional
-          </button>
-          <button class="filter-btn" data-category="shoes">Shoes</button>
-          <button class="filter-btn" data-category="bags">Bags</button>
+          <a href="#women">
+            <button class="filter-btn active">Women's Kemis</button>
+          </a>
+          <a href="#men">
+            <button class="filter-btn">Men's Traditional</button>
+          </a>
+          <a href="#shoes">
+            <button class="filter-btn">Shoes</button>
+          </a>
+          <a href="#bags">
+            <button class="filter-btn">Bags</button>
+          </a>
+          <a href="#jewellery">
+            <button class="filter-btn">Jewellery</button>
+          </a>
+          <a href="#kids-cloth">
+            <button class="filter-btn">Kid's Cloth</button>
+          </a>
         </div>
 
         <!-- Products Grid -->
         <div class="products-grid" id="productsGrid">
           <!-- Women's Habesha Kemis -->
-          <div class="product-card" data-category="women">
+          <div class="product-card">
             <div id="women" style="position: absolute; top: -150px"></div>
             <div class="product-image-wrapper">
               <img
@@ -83,7 +93,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="women">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/womens_kemis_gold_embellished.jpg"
@@ -97,7 +107,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="women">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/womens_kemis_colorful_tilf.jpg"
@@ -111,7 +121,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="women">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/womens_kemis_blue_cross.jpg"
@@ -126,7 +136,7 @@
           </div>
 
           <!-- Men's Traditional Clothes -->
-          <div class="product-card" data-category="men">
+          <div class="product-card">
             <div id="men" style="position: absolute; top: -150px"></div>
             <div class="product-image-wrapper">
               <img
@@ -141,7 +151,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="men">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/mens_ceremonial_outfit.jpg"
@@ -155,7 +165,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="men">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/mens_gold_embroidered_suit.jpg"
@@ -169,7 +179,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="men">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/mens_green_cross_outfit.jpg"
@@ -184,7 +194,7 @@
           </div>
 
           <!-- Traditional Shoes -->
-          <div class="product-card" data-category="shoes">
+          <div class="product-card">
             <div id="shoes" style="position: absolute; top: -150px"></div>
             <div class="product-image-wrapper">
               <img
@@ -199,7 +209,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="shoes">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/shoe_purple_suede_heels.jpg"
@@ -214,7 +224,7 @@
           </div>
 
           <!-- Traditional Bags -->
-          <div class="product-card" data-category="bags">
+          <div class="product-card">
             <div id="bags" style="position: absolute; top: -150px"></div>
             <div class="product-image-wrapper">
               <img
@@ -229,7 +239,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="bags">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/bag_tan_tote.jpg"
@@ -243,7 +253,7 @@
             </div>
           </div>
 
-          <div class="product-card" data-category="bags">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/bag_burgundy_smooth.jpg"
@@ -259,7 +269,7 @@
 
           <!--  Traditional Jewellery-->
 
-          <div class="product-card" data-category="jewellery">
+          <div class="product-card">
             <div id="jewellery" style="position: absolute; top: -150px"></div>
             <div class="product-image-wrapper">
               <img
@@ -273,7 +283,7 @@
               <p class="product-price">4,500 - 5,000 ETB</p>
             </div>
           </div>
-          <div class="product-card" data-category="jewellery">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/ethiopian_jewelry_collection.jpg"
@@ -286,7 +296,7 @@
               <p class="product-price">3,000 - 3,500 ETB</p>
             </div>
           </div>
-          <div class="product-card" data-category="jewellery">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/tigrai-jewellery.jpg"
@@ -299,7 +309,7 @@
               <p class="product-price">30,000 - 35,000 ETB</p>
             </div>
           </div>
-          <div class="product-card" data-category="jewellery">
+          <div class="product-card">
             <div class="product-image-wrapper">
               <img
                 src="images/jewellery-1.jpg"
@@ -309,7 +319,52 @@
             </div>
             <div class="product-info">
               <h3 class="product-name">Traditional EOTC Jewellerys</h3>
-              <p class="product-price">1,000 - 1,000 ETB</p>
+              <p class="product-price">1,000 - 1,300 ETB</p>
+            </div>
+          </div>
+
+          <!-- Traditional Kids Cloths-->
+
+          <div class="product-card">
+            <div id="kids-cloth" style="position: absolute; top: -150px"></div>
+            <div class="product-image-wrapper">
+              <img
+                src="images/kids_cloth_1.jpg"
+                alt="Kids Habesha Cloth"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Beautiful Long Dress</h3>
+              <p class="product-price">7,750 - 8,000 ETB</p>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-image-wrapper">
+              <img
+                src="images/kids_cloth_2.jpg"
+                alt="Kids Habesha Cloth"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Dress with Fringe</h3>
+              <p class="product-price">7,750 - 8,000 ETB</p>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-image-wrapper">
+              <img
+                src="images/kids_cloth_3.jpg"
+                alt="Kids Habesha Cloth"
+                class="product-image"
+              />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">Boys Complete</h3>
+              <p class="product-price">7,750 - 8,000 ETB</p>
             </div>
           </div>
         </div>
@@ -346,6 +401,8 @@
               <li><a href="#men">Men's Traditional</a></li>
               <li><a href="#shoes">Shoes</a></li>
               <li><a href="#bags">Bags</a></li>
+              <li><a href="#jewellery">Jewellery</a></li>
+              <li><a href="#kids-cloth">Kids Cloth</a></li>
             </ul>
           </div>
 
