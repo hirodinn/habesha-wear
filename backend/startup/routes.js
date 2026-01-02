@@ -7,7 +7,7 @@ import users from "../routes/users.js";
 export default function (app) {
   app.use(express.json());
   app.use(cookieParser());
-  app.use("/", users);
+  app.use("/users", users);
   app.use("/products", products);
   app.use("/orders", orders);
 }

@@ -1,8 +1,14 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { User, validateNewUser, validateUserLogin } from "../model/user.js";
+import { validateId } from "../utils/validateId.js";
 
 const router = express.Router();
+
+router.get("/", async (req, res) => {
+  const users = await User.find();
+  res.send(users);
+});
 
 router.get("/me", async (req, res) => {
   res.set({
@@ -80,9 +86,20 @@ router.post("/login", async (req, res) => {
       res
         .status(404)
         .json({ success: false, message: "email or password error" });
-    res.send(user);
   } catch (err) {
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  const { error } = validateId(req.params.id);
+  if (error) res.status(400).json({ message: error.details[0].message });
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (user) res.send(user);
+    else res.status(404).json({ success: false, message: "User Not Found" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

@@ -1,6 +1,6 @@
 import Joi from "joi";
 
 export function validateId(userId) {
-  const schema = Joi.objectId().hex().length(24).required();
+  const schema = Joi.objectId().required();
   return schema.validate(userId);
 }

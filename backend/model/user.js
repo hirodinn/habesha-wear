@@ -9,12 +9,12 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ["customer", "admin", "vendor", "owner"],
-    default: "user",
+    default: "customer",
   },
   cartItems: { type: Array },
 });
 
-userSchema.methods.generateAuthToken = function () {
+userSchema.methods.getAuthToken = function () {
   const token = jwt.sign(
     { _id: this._id, name: this.name, email: this.email, role: this.role },
     process.env.JWT_PRIVATE_KEY
@@ -27,7 +27,7 @@ export function validateNewUser(user) {
   const schema = Joi.object({
     name: Joi.string().min(3).required(),
     email: Joi.string().email().required(),
-    role: Joi.string().valid("customer", "vendor").default("user"),
+    role: Joi.string().valid("customer", "vendor", "admin").default("customer"),
     password: Joi.string().min(8).required(),
     cartItems: Joi.array(),
   });
