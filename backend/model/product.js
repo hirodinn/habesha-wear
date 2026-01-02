@@ -3,6 +3,11 @@ import Joi from "joi";
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, minlength: 3 },
+  ownedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   description: { type: String, required: true, minlength: 10 },
   price: { type: Number, required: true, min: 0 },
   category: { type: String, required: true },
