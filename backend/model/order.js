@@ -26,11 +26,11 @@ export const Order = mongoose.model("Order", orderSchema);
 
 export function validateNewOrder(order) {
   const schema = Joi.object({
-    userId: Joi.string().required(),
+    userId: Joi.objectId().required(),
     products: Joi.array()
       .items(
         Joi.object({
-          productId: Joi.string().required(),
+          productId: Joi.objectId().required(),
           quantity: Joi.number().min(1).required(),
         })
       )
@@ -45,14 +45,6 @@ export function validateNewOrder(order) {
 
 export function validateOrderUpdate(order) {
   const schema = Joi.object({
-    userId: Joi.string(),
-    products: Joi.array().items(
-      Joi.object({
-        productId: Joi.string(),
-        quantity: Joi.number().min(1),
-      })
-    ),
-    totalAmount: Joi.number().min(0),
     status: Joi.string().valid("pending", "shipped", "delivered", "cancelled"),
   });
   return schema.validate(order || {});
