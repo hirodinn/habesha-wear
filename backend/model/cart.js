@@ -31,3 +31,14 @@ export function validateNewCart(cart) {
   });
   return schema.validate(cart || {});
 }
+export function validateUpdateCart(cart) {
+  const schema = Joi.object({
+    products: Joi.array().items(
+      Joi.object({
+        productId: Joi.objectId().required(),
+        quantity: Joi.number().min(1).required(),
+      })
+    ),
+  });
+  return schema.validate(cart || {});
+}

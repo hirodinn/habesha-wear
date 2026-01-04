@@ -1,6 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { Cart, validateNewCart } from "../model/cart.js";
+import { Cart, validateNewCart, validateUpdateCart } from "../model/cart.js";
 import { validateId } from "../utils/validateId.js";
 
 const router = express.Router();
@@ -90,6 +90,38 @@ router.delete("/", async (req, res) => {
     res.send(cart);
   } catch (err) {
     res.status(500).send({ success: false, message: err.message });
+  }
+});
+
+router.put("/", async (req, res) => {
+  res.set({
+    "Cache-Control": "no-store",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
+
+  const token = req.cookies.token;
+  if (!token)
+    return res.status(401).json({ success: false, message: "Access Denied" });
+
+  const { error } = validateUpdateCart(req.body);
+  if (error)
+    return res
+      .status(400)
+      .send({ success: false, message: error.details[0].message });
+
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  try {
+    if (decoded.role === "customer") {
+      const cart = await Cart.find({ userId: decoded._id });
+      cart.products = req.body.products;
+      await cart.save();
+      res.send(cart);
+    } else {
+      res.status(400).json({ success: false, message: "user not verified" });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
