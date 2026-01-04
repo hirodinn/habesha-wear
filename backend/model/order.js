@@ -15,6 +15,7 @@ const orderSchema = new mongoose.Schema({
   ],
   totalAmount: { type: Number, required: true, min: 0 },
   orderDate: { type: Date, default: Date.now },
+  deliveredDate: { type: Date, required: true },
   status: {
     type: String,
     enum: ["pending", "shipped", "delivered", "cancelled"],
@@ -36,6 +37,7 @@ export function validateNewOrder(order) {
       )
       .required(),
     totalAmount: Joi.number().min(0).required(),
+    deliveredDate: Joi.date().required(),
     status: Joi.string()
       .valid("pending", "shipped", "delivered", "cancelled")
       .default("pending"),
