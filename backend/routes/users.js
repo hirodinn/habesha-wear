@@ -126,7 +126,7 @@ router.delete("/:id", async (req, res) => {
   if (decoded.role !== "admin" && decoded.role !== "owner")
     return res.status(403).json({
       success: false,
-      message: "Only Admins and Owners are allowed to see all users",
+      message: "Only Admins and Owners are allowed to delete users",
     });
   const { error } = validateId(req.params.id);
   if (error) res.status(400).json({ message: error.details[0].message });
@@ -140,7 +140,7 @@ router.delete("/:id", async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "owner can't be deleted" });
-    if (user.role === "admin" && decoded.role === "admin")
+    if (user.role === "admin" && decoded.role !== "owner")
       return res
         .status(404)
         .json({ success: false, message: "Only owner can delete admins" });

@@ -25,18 +25,14 @@ export function validateNewProduct(product) {
     category: Joi.string().required(),
     stock: Joi.number().min(0).required(),
     images: Joi.array().items(Joi.string().uri()),
+    ownedBy: Joi.objectId(),
   });
   return schema.validate(product || {});
 }
 
 export function validateProductUpdate(product) {
   const schema = Joi.object({
-    name: Joi.string().min(3),
-    description: Joi.string().min(10).max(30),
-    price: Joi.number().min(0),
-    category: Joi.string(),
-    stock: Joi.number().min(0),
-    images: Joi.array().items(Joi.string().uri()),
+    stock: Joi.number().min(0).required(),
   });
   return schema.validate(product || {});
 }
