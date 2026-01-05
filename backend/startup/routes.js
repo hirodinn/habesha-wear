@@ -13,5 +13,5 @@ export default function (app) {
   app.use("/products", products);
   app.use("/orders", orders);
   app.use("/carts", carts);
-  app.use("/preproduct", preProducts);
+  app.use("/preproducts", preProducts);
 }

@@ -13,6 +13,7 @@ const preProductSchema = new mongoose.Schema({
   category: { type: String, required: true },
   stock: { type: Number, required: true, min: 0 },
   images: { type: [String], default: [] },
+  status: { type: String, enum: ["pending, accepted, rejected"] },
 });
 
 export const PreProduct = mongoose.model("PreProduct", preProductSchema);
@@ -26,5 +27,13 @@ export function validatePreProduct(preProduct) {
     category: Joi.string().required(),
     stock: Joi.number().min(0).required(),
     images: Joi.array().items(Joi.string().uri()),
+    status: Joi.string()
+      .valid("pending", "accepted", "rejected")
+      .default("pending"),
+  });
+}
+export function validatePreProductUpdate(preProduct) {
+  const schema = Joi.object({
+    status: Joi.string().valid("pending", "accepted", "rejected").required(),
   });
 }
