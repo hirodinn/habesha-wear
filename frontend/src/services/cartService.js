@@ -19,7 +19,7 @@ export const addToCart = async (productId, quantity = 1) => {
   try {
     const carts = await fetchCart();
     cart = Array.isArray(carts) ? carts[0] : carts;
-    console.log(carts);
+    console.log("cart", cart);
   } catch (err) {
     // If error, might be 404 or something else
   }
@@ -36,16 +36,18 @@ export const addToCart = async (productId, quantity = 1) => {
       (p) => p.productId === productId
     );
     let updatedProducts = [...cart.products];
-
     if (existingProductIndex > -1) {
       updatedProducts[existingProductIndex].quantity += quantity;
     } else {
       updatedProducts.push({ productId, quantity });
     }
 
+    console.log(updatedProducts);
+
     const response = await axios.put(API_URL, {
       products: updatedProducts,
     });
+
     return response.data;
   }
 };
