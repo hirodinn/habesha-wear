@@ -19,6 +19,7 @@ export const addToCart = async (productId, quantity = 1) => {
   try {
     const carts = await fetchCart();
     cart = Array.isArray(carts) ? carts[0] : carts;
+    console.log(carts);
   } catch (err) {
     // If error, might be 404 or something else
   }

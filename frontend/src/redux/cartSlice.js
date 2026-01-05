@@ -1,12 +1,41 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import * as cartService from "../services/cartService";
+import productService from "../services/productService";
 
 export const getCart = createAsyncThunk(
   "cart/get",
   async (_, { rejectWithValue }) => {
     try {
       const data = await cartService.fetchCart();
-      return Array.isArray(data) ? data[0] : data;
+      const cart = Array.isArray(data) ? data[0] : data;
+
+      if (!cart || !cart.products) return cart;
+
+      // Populate product details for each item
+      const populatedProducts = await Promise.all(
+        cart.products.map(async (item) => {
+          try {
+            const productDetails = await productService.fetchProductById(
+              item.productId
+            );
+            return {
+              ...item,
+              ...productDetails, // Spread details (includes name, price, etc.)
+            };
+          } catch (err) {
+            console.error(
+              `Failed to fetch details for product ${item.productId}:`,
+              err
+            );
+            return item;
+          }
+        })
+      );
+
+      return {
+        ...cart,
+        products: populatedProducts,
+      };
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
@@ -17,7 +46,17 @@ export const addItemToCart = createAsyncThunk(
   "cart/addItem",
   async ({ productId, quantity }, { rejectWithValue }) => {
     try {
-      return await cartService.addToCart(productId, quantity);
+      const cart = await cartService.addToCart(productId, quantity);
+
+      // Populate details
+      const populatedProducts = await Promise.all(
+        cart.products.map(async (item) => {
+          const details = await productService.fetchProductById(item.productId);
+          return { ...item, ...details };
+        })
+      );
+
+      return { ...cart, products: populatedProducts };
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
@@ -28,7 +67,17 @@ export const updateItemQuantity = createAsyncThunk(
   "cart/updateItem",
   async ({ productId, quantity }, { rejectWithValue }) => {
     try {
-      return await cartService.updateCartItem(productId, quantity);
+      const cart = await cartService.updateCartItem(productId, quantity);
+
+      // Populate details
+      const populatedProducts = await Promise.all(
+        cart.products.map(async (item) => {
+          const details = await productService.fetchProductById(item.productId);
+          return { ...item, ...details };
+        })
+      );
+
+      return { ...cart, products: populatedProducts };
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
@@ -39,7 +88,17 @@ export const removeItem = createAsyncThunk(
   "cart/removeItem",
   async (productId, { rejectWithValue }) => {
     try {
-      return await cartService.removeFromCart(productId);
+      const cart = await cartService.removeFromCart(productId);
+
+      // Populate details
+      const populatedProducts = await Promise.all(
+        cart.products.map(async (item) => {
+          const details = await productService.fetchProductById(item.productId);
+          return { ...item, ...details };
+        })
+      );
+
+      return { ...cart, products: populatedProducts };
     } catch (err) {
       return rejectWithValue(err.response.data);
     }

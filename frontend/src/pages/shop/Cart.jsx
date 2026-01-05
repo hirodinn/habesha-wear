@@ -43,7 +43,7 @@ const Cart = () => {
           <ShoppingBag size={40} className="text-gray-400" />
         </div>
         <h2 className="text-3xl font-bold mb-4">Your cart is empty</h2>
-        <p className="text-[var(--text-secondary)] mb-8 max-w-md">
+        <p className="text-(--text-secondary) mb-8 max-w-md">
           Please log in to see your saved items and start shopping our unique
           Habesha collection.
         </p>
@@ -72,7 +72,7 @@ const Cart = () => {
             <ShoppingBag size={32} />
           </div>
           <h3 className="text-xl font-bold mb-2">Your cart feels lonely</h3>
-          <p className="text-[var(--text-secondary)] mb-6">
+          <p className="text-(--text-secondary) mb-6">
             Explore our latest arrivals and add some culture to your wardrobe.
           </p>
           <Link to="/" className="btn-primary">

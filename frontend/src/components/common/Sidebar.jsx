@@ -29,6 +29,8 @@ const Sidebar = () => {
   } = useSelector((state) => state.auth);
   const { items: cartItems } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     dispatch(logoutUser());
