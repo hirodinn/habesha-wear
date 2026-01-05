@@ -43,14 +43,18 @@ router.post("/", async (req, res) => {
   const token = req.cookies.token;
   if (!token)
     return res.status(401).json({ success: false, message: "Access denied" });
-  const { error } = validateNewOrder(req.body);
+  let obj = { ...req.body };
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  obj.userId = decoded._id;
+  console.log(obj);
+  const { error } = validateNewOrder(obj);
   if (error)
     return res
       .status(400)
       .json({ success: false, message: error.details[0].message });
 
   try {
-    let order = new Order(req.body);
+    let order = new Order(obj);
     order = await order.save();
     res.send(order);
   } catch (err) {

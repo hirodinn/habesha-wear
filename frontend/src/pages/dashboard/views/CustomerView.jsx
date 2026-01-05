@@ -134,7 +134,7 @@ const CustomerView = () => {
                         Placed On
                       </p>
                       <p className="text-xs font-semibold text-[var(--text-main)]">
-                        {new Date(order.createdAt).toLocaleDateString("en-US", {
+                        {new Date(order.orderDate).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",

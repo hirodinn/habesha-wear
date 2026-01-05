@@ -9,10 +9,15 @@ import {
   CreditCard,
   Loader2,
 } from "lucide-react";
-import { updateItemQuantity, removeItem, getCart } from "../../redux/cartSlice";
+import {
+  updateItemQuantity,
+  removeItem,
+  getCart,
+  clearCart,
+} from "../../redux/cartSlice";
 import { useEffect } from "react";
-import { removeCart } from "../../services/cartService";
-
+import { fetchCart, removeCart } from "../../services/cartService";
+import orderService from "../../services/orderService";
 const Cart = () => {
   const { items: cartItems, loading } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
@@ -37,9 +42,37 @@ const Cart = () => {
     );
   };
 
-  const handleCheckout = () => {
-    removeCart();
-    navigate("/");
+  const handleCheckout = async () => {
+    try {
+      const data = await fetchCart();
+      const cart = Array.isArray(data) ? data[0] : data;
+
+      if (!cart || !cart.products || cart.products.length === 0) {
+        alert("Your cart is empty!");
+        return;
+      }
+
+      // Format products for backend: only productId and quantity
+      const orderProducts = cart.products.map((p) => ({
+        productId: p.productId,
+        quantity: p.quantity,
+      }));
+
+      await orderService.postOrders({
+        products: orderProducts,
+        totalAmount: calculateTotal(),
+      });
+
+      // Clear cart on success
+      await removeCart();
+      dispatch(clearCart());
+
+      alert("Order placed successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Checkout failed:", error);
+      alert("Checkout failed. Please try again.");
+    }
   };
 
   if (!user) {
