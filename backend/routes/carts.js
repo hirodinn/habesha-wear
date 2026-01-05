@@ -73,6 +73,15 @@ router.delete("/", async (req, res) => {
   });
 
   const token = req.cookies.token;
+
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+
+  if (decoded.role === "customer") {
+    const cart = await Cart.findOne({ userId: decoded._id });
+    await cart.deleteOne();
+    return res.send(cart);
+  }
+
   if (!token)
     return res.status(401).json({ success: false, message: "Access Denied" });
 
@@ -82,7 +91,6 @@ router.delete("/", async (req, res) => {
       .status(400)
       .send({ success: false, message: error.details[0].message });
 
-  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
   try {
     if (decoded.role === "vendor") {
       return res

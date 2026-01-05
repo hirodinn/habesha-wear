@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { updateItemQuantity, removeItem, getCart } from "../../redux/cartSlice";
 import { useEffect } from "react";
+import { removeCart } from "../../services/cartService";
 
 const Cart = () => {
   const { items: cartItems, loading } = useSelector((state) => state.cart);
@@ -34,6 +35,11 @@ const Cart = () => {
       (acc, item) => acc + (item.price || 0) * item.quantity,
       0
     );
+  };
+
+  const handleCheckout = () => {
+    removeCart();
+    navigate("/");
   };
 
   if (!user) {
@@ -173,7 +179,10 @@ const Cart = () => {
                 </div>
               </div>
 
-              <button className="btn-primary w-full py-4 flex items-center justify-center gap-2 group mt-4">
+              <button
+                className="btn-primary w-full py-4 flex items-center justify-center gap-2 group mt-4"
+                onClick={handleCheckout}
+              >
                 Proceed to Checkout
                 <CreditCard
                   size={18}

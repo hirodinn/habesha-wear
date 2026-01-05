@@ -68,6 +68,11 @@ export const updateCartItem = async (productId, quantity) => {
   return response.data;
 };
 
+export const removeCart = async () => {
+  const response = await axios.delete(API_URL);
+  return response.data;
+};
+
 export const removeFromCart = async (productId) => {
   const carts = await fetchCart();
   const cart = Array.isArray(carts) ? carts[0] : carts;
