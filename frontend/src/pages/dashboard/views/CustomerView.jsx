@@ -7,17 +7,23 @@ import {
   Truck,
   AlertCircle,
   ShoppingBag,
+  RefreshCw,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CustomerView = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (manual = false) => {
+    if (manual) setIsRefreshing(true);
+    else setLoading(true);
+
     try {
       const data = await orderService.getOrders();
       setOrders(data);
@@ -25,6 +31,7 @@ const CustomerView = () => {
       console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -67,11 +74,28 @@ const CustomerView = () => {
   return (
     <div className="space-y-8 animate-fade-in w-full">
       <div className="bg-linear-to-br from-sky-500 to-blue-600 rounded-3xl p-8 text-white shadow-xl shadow-sky-500/20 relative overflow-hidden">
-        <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">My Orders</h1>
-          <p className="opacity-90 font-medium">
-            Track your traditional treasures
-          </p>
+        <div className="relative z-10 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">My Orders</h1>
+            <p className="opacity-90 font-medium">
+              Track your traditional treasures
+            </p>
+          </div>
+          <button
+            onClick={() => fetchOrders(true)}
+            disabled={isRefreshing}
+            className="p-3 bg-white/20 hover:bg-white/30 rounded-2xl transition-all active:scale-95 disabled:opacity-50 group"
+            title="Refresh Orders"
+          >
+            <RefreshCw
+              size={20}
+              className={`${
+                isRefreshing
+                  ? "animate-spin"
+                  : "group-hover:rotate-180 transition-transform duration-500"
+              }`}
+            />
+          </button>
         </div>
         <Package className="absolute right-[-20px] bottom-[-20px] w-48 h-48 opacity-10 -rotate-12" />
       </div>
@@ -83,9 +107,15 @@ const CustomerView = () => {
             <h3 className="text-xl font-bold text-(--text-main) mb-2">
               No orders found
             </h3>
-            <p className="text-(--text-secondary)">
+            <p className="text-(--text-secondary) mb-6">
               Start exploring our collection to place your first order!
             </p>
+            <Link
+              to="/shop"
+              className="inline-flex items-center px-6 py-3 rounded-2xl bg-sky-500 text-white font-bold hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+            >
+              Shop Now
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
