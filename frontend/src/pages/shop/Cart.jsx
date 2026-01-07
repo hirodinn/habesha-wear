@@ -14,8 +14,10 @@ import {
   removeItem,
   getCart,
   clearCart,
+  addItemToCart,
 } from "../../redux/cartSlice";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+
 import { fetchCart, removeCart } from "../../services/cartService";
 import orderService from "../../services/orderService";
 const Cart = () => {
@@ -23,6 +25,7 @@ const Cart = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -43,12 +46,15 @@ const Cart = () => {
   };
 
   const handleCheckout = async () => {
+    if (isCheckingOut) return;
+    setIsCheckingOut(true);
     try {
       const data = await fetchCart();
       const cart = Array.isArray(data) ? data[0] : data;
 
       if (!cart || !cart.products || cart.products.length === 0) {
         alert("Your cart is empty!");
+        setIsCheckingOut(false);
         return;
       }
 
@@ -68,10 +74,12 @@ const Cart = () => {
       dispatch(clearCart());
 
       alert("Order placed successfully!");
-      navigate("/");
+      navigate("/dashboard"); // Redirect to orders view
     } catch (error) {
       console.error("Checkout failed:", error);
       alert("Checkout failed. Please try again.");
+    } finally {
+      setIsCheckingOut(false);
     }
   };
 
@@ -213,14 +221,24 @@ const Cart = () => {
               </div>
 
               <button
-                className="btn-primary w-full py-4 flex items-center justify-center gap-2 group mt-4"
+                className="btn-primary w-full py-4 flex items-center justify-center gap-2 group mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
                 onClick={handleCheckout}
+                disabled={isCheckingOut || cartItems.length === 0}
               >
-                Proceed to Checkout
-                <CreditCard
-                  size={18}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
+                {isCheckingOut ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Proceed to Checkout
+                    <CreditCard
+                      size={18}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </>
+                )}
               </button>
 
               <p className="text-[10px] text-center text-[var(--text-secondary)]">
