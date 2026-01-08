@@ -7,17 +7,23 @@ import {
   Truck,
   AlertCircle,
   ShoppingBag,
+  RefreshCw,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CustomerView = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (manual = false) => {
+    if (manual) setIsRefreshing(true);
+    else setLoading(true);
+
     try {
       const data = await orderService.getOrders();
       setOrders(data);
@@ -25,6 +31,7 @@ const CustomerView = () => {
       console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -67,32 +74,55 @@ const CustomerView = () => {
   return (
     <div className="space-y-8 animate-fade-in w-full">
       <div className="bg-linear-to-br from-sky-500 to-blue-600 rounded-3xl p-8 text-white shadow-xl shadow-sky-500/20 relative overflow-hidden">
-        <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">My Orders</h1>
-          <p className="opacity-90 font-medium">
-            Track your traditional treasures
-          </p>
+        <div className="relative z-10 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">My Orders</h1>
+            <p className="opacity-90 font-medium">
+              Track your traditional treasures
+            </p>
+          </div>
+          <button
+            onClick={() => fetchOrders(true)}
+            disabled={isRefreshing}
+            className="p-3 bg-white/20 hover:bg-white/30 rounded-2xl transition-all active:scale-95 disabled:opacity-50 group"
+            title="Refresh Orders"
+          >
+            <RefreshCw
+              size={20}
+              className={`${
+                isRefreshing
+                  ? "animate-spin"
+                  : "group-hover:rotate-180 transition-transform duration-500"
+              }`}
+            />
+          </button>
         </div>
         <Package className="absolute right-[-20px] bottom-[-20px] w-48 h-48 opacity-10 -rotate-12" />
       </div>
 
       <div className="space-y-4">
         {orders.length === 0 ? (
-          <div className="text-center py-20 card-standard bg-[var(--bg-card)] border-dashed border-2">
-            <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-[var(--text-secondary)] opacity-30" />
-            <h3 className="text-xl font-bold text-[var(--text-main)] mb-2">
+          <div className="text-center py-20 card-standard bg-(--bg-card) border-dashed border-2">
+            <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-(--text-secondary) opacity-30" />
+            <h3 className="text-xl font-bold text-(--text-main) mb-2">
               No orders found
             </h3>
-            <p className="text-[var(--text-secondary)]">
+            <p className="text-(--text-secondary) mb-6">
               Start exploring our collection to place your first order!
             </p>
+            <Link
+              to="/shop"
+              className="inline-flex items-center px-6 py-3 rounded-2xl bg-sky-500 text-white font-bold hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+            >
+              Shop Now
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
             {orders.map((order) => (
               <div
                 key={order._id}
-                className="card-standard overflow-hidden bg-[var(--bg-card)] border-l-4 transition-all hover:translate-x-1 group flex flex-col h-full"
+                className="card-standard overflow-hidden bg-(--bg-card) border-l-4 transition-all hover:translate-x-1 group flex flex-col h-full"
                 style={{
                   borderLeftColor:
                     order.status?.toLowerCase() === "delivered"
@@ -108,10 +138,10 @@ const CustomerView = () => {
                   {/* Order Header */}
                   <div className="flex items-center justify-between gap-4 mb-6">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-(--text-secondary)">
                         Order Ref
                       </p>
-                      <h3 className="text-lg font-display font-bold text-[var(--text-main)]">
+                      <h3 className="text-lg font-display font-bold text-(--text-main)">
                         #{order._id.slice(-8).toUpperCase()}
                       </h3>
                     </div>
@@ -128,12 +158,12 @@ const CustomerView = () => {
                   </div>
 
                   {/* Order Details Grid */}
-                  <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-[var(--border-color)]/30">
+                  <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-(--border-color)/30">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+                      <p className="text-[10px] font-bold text-(--text-secondary) uppercase">
                         Placed On
                       </p>
-                      <p className="text-xs font-semibold text-[var(--text-main)]">
+                      <p className="text-xs font-semibold text-(--text-main)">
                         {new Date(order.orderDate).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -142,22 +172,22 @@ const CustomerView = () => {
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+                      <p className="text-[10px] font-bold text-(--text-secondary) uppercase">
                         Total
                       </p>
-                      <p className="text-sm font-bold text-sky-500">
+                      <p className="text-sm font-bold text-(--text-main)">
                         {order.totalAmount} Birr
                       </p>
                     </div>
                   </div>
 
                   {/* Item Summary Box */}
-                  <div className="flex-1 bg-[var(--bg-main)]/50 rounded-2xl p-4 border border-[var(--border-color)]/50 ring-1 ring-black/[0.02] dark:ring-white/[0.02] mb-6">
+                  <div className="flex-1 bg-[(--bg-main)]/50 rounded-2xl p-4 border border-(--border-color)/50 ring-1 ring-black/2 dark:ring-white/2 mb-6">
                     <div className="flex items-center justify-between mb-3 px-1">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-(--text-secondary)">
                         Items
                       </span>
-                      <span className="text-[10px] font-bold text-sky-500">
+                      <span className="text-[10px] font-bold text-(--text-main)">
                         {order.items?.length || 0} Total
                       </span>
                     </div>
@@ -165,16 +195,16 @@ const CustomerView = () => {
                       {order.items?.slice(0, 2).map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 px-2 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-sm"
+                          className="flex items-center gap-3 px-2 py-2 rounded-xl bg-(--bg-card) border border-(--border-color) shadow-sm"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-500 flex-shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-(--bg-card)/10 flex items-center justify-center text-(--text-main) shrink-0">
                             <Package size={14} />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[11px] font-bold text-[var(--text-main)] truncate">
+                            <p className="text-[11px] font-bold text-(--text-main) truncate">
                               {item.productName || "Product"}
                             </p>
-                            <p className="text-[9px] text-[var(--text-secondary)] font-medium">
+                            <p className="text-[9px] text-(--text-secondary) font-medium">
                               Qty: {item.quantity}
                             </p>
                           </div>
@@ -190,10 +220,10 @@ const CustomerView = () => {
 
                   {/* Actions Mapping to Grid Bottom */}
                   <div className="flex items-center gap-2 mt-auto">
-                    <button className="flex-1 px-4 py-2.5 rounded-xl bg-sky-500 text-white text-xs font-bold hover:bg-sky-600 shadow-lg shadow-sky-500/20 transition-all">
+                    <button className="flex-1 px-4 py-2.5 rounded-xl bg-(--bg-main) text-(--text-main) text-xs font-bold hover:bg-(--bg-main)/50 shadow-lg shadow-(--bg-main)/20 transition-all">
                       Details
                     </button>
-                    <button className="px-4 py-2.5 rounded-xl bg-[var(--bg-main)] text-[var(--text-main)] text-xs font-bold border border-[var(--border-color)] hover:border-sky-500/50 transition-all">
+                    <button className="px-4 py-2.5 rounded-xl bg-(--bg-main) text-(--text-main) text-xs font-bold border border-(--border-color) hover:border-(--bg-main)/50 transition-all">
                       Track
                     </button>
                   </div>

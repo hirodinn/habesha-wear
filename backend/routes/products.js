@@ -106,11 +106,17 @@ router.put("/:id", async (req, res) => {
 
   try {
     const product = await Product.findById(req.params.id);
-    product.stock = req.body.stock;
-    product.save();
-    res.send(product);
+    if (product.stock >= req.body.stock) {
+      product.stock -= req.body.stock;
+      product.save();
+      res.send(product);
+    } else {
+      res
+        .status(400)
+        .json({ success: false, message: "amount greater than we got" });
+    }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
