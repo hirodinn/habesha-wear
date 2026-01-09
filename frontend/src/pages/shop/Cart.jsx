@@ -14,7 +14,7 @@ import {
   removeItem,
   getCart,
   clearCart,
-  addItemToCart,
+  setItems,
 } from "../../redux/cartSlice";
 import { useState, useEffect } from "react";
 
@@ -156,14 +156,26 @@ const Cart = () => {
 
                 <div className="flex items-center gap-3 bg-[var(--bg-main)] rounded-xl p-1 border border-[var(--border-color)]">
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      const newQuantity = Math.max(1, item.quantity - 1);
+                      if (newQuantity === item.quantity) return;
+
+                      // Immediate UI update
+                      const updatedItems = cartItems.map((cartItem) =>
+                        cartItem.productId === item.productId
+                          ? { ...cartItem, quantity: newQuantity }
+                          : cartItem
+                      );
+                      dispatch(setItems(updatedItems));
+
+                      // Sync with backend
                       dispatch(
                         updateItemQuantity({
                           productId: item.productId,
-                          quantity: Math.max(1, item.quantity - 1),
+                          quantity: newQuantity,
                         })
-                      )
-                    }
+                      );
+                    }}
                     className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
                     <Minus size={16} />
@@ -172,14 +184,25 @@ const Cart = () => {
                     {item.quantity}
                   </span>
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      const newQuantity = item.quantity + 1;
+
+                      // Immediate UI update
+                      const updatedItems = cartItems.map((cartItem) =>
+                        cartItem.productId === item.productId
+                          ? { ...cartItem, quantity: newQuantity }
+                          : cartItem
+                      );
+                      dispatch(setItems(updatedItems));
+
+                      // Sync with backend
                       dispatch(
-                        addItemToCart({
+                        updateItemQuantity({
                           productId: item.productId,
-                          quantity: 1,
+                          quantity: newQuantity,
                         })
-                      )
-                    }
+                      );
+                    }}
                     className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
                     <Plus size={16} />
