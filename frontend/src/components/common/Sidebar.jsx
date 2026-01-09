@@ -11,15 +11,52 @@ import {
   Package,
   Sun,
   Moon,
-  ShoppingBag,
   ShoppingCart,
   LayoutDashboard,
   Info,
   ChevronLeft,
   ChevronRight,
   Home,
+  Clock,
+  Users,
+  Tag,
 } from "lucide-react";
-import { useEffect } from "react";
+
+const NavItem = ({ to, icon: Icon, label, badge, isCollapsed, location }) => {
+  const isActive = location.pathname === to;
+  return (
+    <Link
+      to={to}
+      className={`group flex items-center gap-3 px-3 py-3 rounded-2xl transition-all duration-300 relative ${
+        isActive
+          ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
+          : "text-(--text-secondary) hover:bg-sky-500/10 hover:text-sky-500"
+      }`}
+      title={isCollapsed ? label : ""}
+    >
+      <div className="shrink-0">
+        <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+      </div>
+      {!isCollapsed && (
+        <span className="font-semibold text-sm whitespace-nowrap overflow-hidden animate-fade-in">
+          {label}
+        </span>
+      )}
+      {badge > 0 && (
+        <span
+          className={`absolute ${
+            isCollapsed ? "top-1 right-1" : "right-3"
+          } flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-(--bg-card)`}
+        >
+          {badge}
+        </span>
+      )}
+      {isActive && !isCollapsed && (
+        <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+      )}
+    </Link>
+  );
+};
 
 const Sidebar = () => {
   const {
@@ -35,42 +72,6 @@ const Sidebar = () => {
   const handleLogout = () => {
     dispatch(logoutUser());
     navigate("/login");
-  };
-
-  const NavItem = ({ to, icon: Icon, label, badge }) => {
-    const isActive = location.pathname === to;
-    return (
-      <Link
-        to={to}
-        className={`group flex items-center gap-3 px-3 py-3 rounded-2xl transition-all duration-300 relative ${
-          isActive
-            ? "bg-sky-500 text-white shadow-lg shadow-sky-500/20"
-            : "text-(--text-secondary) hover:bg-sky-500/10 hover:text-sky-500"
-        }`}
-        title={isCollapsed ? label : ""}
-      >
-        <div className="shrink-0">
-          <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-        </div>
-        {!isCollapsed && (
-          <span className="font-semibold text-sm whitespace-nowrap overflow-hidden animate-fade-in">
-            {label}
-          </span>
-        )}
-        {badge > 0 && (
-          <span
-            className={`absolute ${
-              isCollapsed ? "top-1 right-1" : "right-3"
-            } flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-(--bg-card)`}
-          >
-            {badge}
-          </span>
-        )}
-        {isActive && !isCollapsed && (
-          <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-        )}
-      </Link>
-    );
   };
 
   return (
@@ -96,7 +97,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation Section */}
-        <nav className="flex-1 px-4 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
           <div
             className={`mb-4 px-2 text-[10px] font-bold uppercase tracking-widest text-(--text-secondary) opacity-50 transition-opacity duration-300 ${
               isCollapsed ? "opacity-0" : "opacity-100"
@@ -104,19 +105,91 @@ const Sidebar = () => {
           >
             Main Menu
           </div>
-          <NavItem to="/" icon={Home} label="Shop" />
+          <NavItem
+            to="/"
+            icon={Home}
+            label="Shop"
+            isCollapsed={isCollapsed}
+            location={location}
+          />
           {user && (
-            <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
-          )}
-          {user && user.role !== "vendor" && (
             <NavItem
-              to="/cart"
-              icon={ShoppingCart}
-              label="Cart"
-              badge={cartItems.length}
+              to="/dashboard"
+              icon={LayoutDashboard}
+              label="Dashboard"
+              isCollapsed={isCollapsed}
+              location={location}
             />
           )}
-          <NavItem to="/about" icon={Info} label="About" />
+
+          {/* Admin/Owner Direct Links */}
+          {(user?.role === "admin" || user?.role === "owner") && (
+            <>
+              <div
+                className={`mt-6 mb-4 px-2 text-[10px] font-bold uppercase tracking-widest text-(--text-secondary) opacity-50 transition-opacity duration-300 ${
+                  isCollapsed ? "opacity-0" : "opacity-100"
+                }`}
+              >
+                Management
+              </div>
+              <NavItem
+                to="/admin/pending"
+                icon={Clock}
+                label="Pending"
+                isCollapsed={isCollapsed}
+                location={location}
+              />
+              <NavItem
+                to="/admin/users"
+                icon={Users}
+                label="Users"
+                isCollapsed={isCollapsed}
+                location={location}
+              />
+              <NavItem
+                to="/admin/orders"
+                icon={Package}
+                label="Orders"
+                isCollapsed={isCollapsed}
+                location={location}
+              />
+              <NavItem
+                to="/admin/products"
+                icon={Tag}
+                label="Products"
+                isCollapsed={isCollapsed}
+                location={location}
+              />
+              <NavItem
+                to="/admin/carts"
+                icon={ShoppingCart}
+                label="Carts"
+                isCollapsed={isCollapsed}
+                location={location}
+              />
+            </>
+          )}
+
+          {user &&
+            user.role !== "vendor" &&
+            user.role !== "admin" &&
+            user.role !== "owner" && (
+              <NavItem
+                to="/cart"
+                icon={ShoppingCart}
+                label="Cart"
+                badge={cartItems.length}
+                isCollapsed={isCollapsed}
+                location={location}
+              />
+            )}
+          <NavItem
+            to="/about"
+            icon={Info}
+            label="About"
+            isCollapsed={isCollapsed}
+            location={location}
+          />
         </nav>
 
         {/* Footer: Theme, Profile, Logout */}
