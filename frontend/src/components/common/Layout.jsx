@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
   }, [darkMode]);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans selection:bg-sky-500/30 overflow-x-hidden relative transition-colors duration-300">
+    <div className="min-h-screen flex flex-col md:flex-row font-sans selection:bg-sky-500/30 relative transition-colors duration-300">
       {/* Background Ambience (Subtle) */}
       <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
         {/* Light Mode Blobs (Soft) */}
@@ -36,13 +36,13 @@ const Layout = ({ children }) => {
           {children}
         </main>
 
-        <footer className="border-t border-[var(--border-color)] py-6 relative z-10 bg-[var(--bg-card)]/50 backdrop-blur-sm mt-auto mb-20 md:mb-0">
+        <footer className="border-t border-(--border-color) py-6 relative z-10 bg-(--bg-card)/50 backdrop-blur-sm mt-auto mb-20 md:mb-0">
           <div className="container mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              <div className="text-2xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-700 to-gray-900 dark:from-gray-400 dark:to-gray-200">
+              <div className="text-2xl font-display font-bold bg-clip-text text-transparent bg-linear-to-r from-gray-700 to-gray-900 dark:from-gray-400 dark:to-gray-200">
                 Habesha Wear
               </div>
-              <div className="text-[var(--text-secondary)] text-sm">
+              <div className="text-(--text-secondary) text-sm">
                 © {new Date().getFullYear()} Crafted with precision.
               </div>
             </div>

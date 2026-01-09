@@ -14,7 +14,7 @@ import {
   removeItem,
   getCart,
   clearCart,
-  addItemToCart,
+  setItems,
 } from "../../redux/cartSlice";
 import { useState, useEffect } from "react";
 
@@ -29,9 +29,13 @@ const Cart = () => {
 
   useEffect(() => {
     if (user) {
+      if (user.role === "vendor") {
+        navigate("/dashboard");
+        return;
+      }
       dispatch(getCart());
     }
-  }, [user, dispatch]);
+  }, [user, dispatch, navigate]);
 
   const calculateTotal = () => {
     // Note: Backend cart might not populate product details in the simple items array
@@ -156,14 +160,26 @@ const Cart = () => {
 
                 <div className="flex items-center gap-3 bg-[var(--bg-main)] rounded-xl p-1 border border-[var(--border-color)]">
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      const newQuantity = Math.max(1, item.quantity - 1);
+                      if (newQuantity === item.quantity) return;
+
+                      // Immediate UI update
+                      const updatedItems = cartItems.map((cartItem) =>
+                        cartItem.productId === item.productId
+                          ? { ...cartItem, quantity: newQuantity }
+                          : cartItem
+                      );
+                      dispatch(setItems(updatedItems));
+
+                      // Sync with backend
                       dispatch(
                         updateItemQuantity({
                           productId: item.productId,
-                          quantity: Math.max(1, item.quantity - 1),
+                          quantity: newQuantity,
                         })
-                      )
-                    }
+                      );
+                    }}
                     className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
                     <Minus size={16} />
@@ -172,14 +188,25 @@ const Cart = () => {
                     {item.quantity}
                   </span>
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      const newQuantity = item.quantity + 1;
+
+                      // Immediate UI update
+                      const updatedItems = cartItems.map((cartItem) =>
+                        cartItem.productId === item.productId
+                          ? { ...cartItem, quantity: newQuantity }
+                          : cartItem
+                      );
+                      dispatch(setItems(updatedItems));
+
+                      // Sync with backend
                       dispatch(
-                        addItemToCart({
+                        updateItemQuantity({
                           productId: item.productId,
-                          quantity: 1,
+                          quantity: newQuantity,
                         })
-                      )
-                    }
+                      );
+                    }}
                     className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
                     <Plus size={16} />
@@ -187,7 +214,12 @@ const Cart = () => {
                 </div>
 
                 <button
-                  onClick={() => dispatch(removeItem(item.productId))}
+                  onClick={() => {
+                    const temp = cartItems.filter(
+                      (cart) => cart.productId !== item.productId
+                    );
+                    dispatch(setItems(temp));
+                  }}
                   className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                 >
                   <Trash2 size={20} />

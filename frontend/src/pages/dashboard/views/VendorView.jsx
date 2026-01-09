@@ -63,6 +63,50 @@ const VendorView = () => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return {
+          badge:
+            "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/20",
+          dot: "bg-yellow-500",
+          border: "border-yellow-500",
+        };
+      case "accepted":
+        return {
+          badge:
+            "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-500/20",
+          dot: "bg-green-500",
+          border: "border-green-500",
+        };
+      case "rejected":
+        return {
+          badge:
+            "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-500/20",
+          dot: "bg-red-500",
+          border: "border-red-500",
+        };
+      default:
+        return {
+          badge:
+            "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 border-gray-200 dark:border-gray-500/20",
+          dot: "bg-gray-500",
+          border: "border-gray-500",
+        };
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status?.toLowerCase()) {
+      case "accepted":
+        return <CheckCircle size={14} />;
+      case "rejected":
+        return <XCircle size={14} />;
+      default:
+        return <Clock size={14} />;
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in relative">
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
@@ -222,12 +266,23 @@ const VendorView = () => {
         {preProducts.map((product) => (
           <div
             key={product._id}
-            className="card-standard p-5 relative group bg-[var(--bg-card)]"
+            className={`card-standard p-5 relative group bg-[var(--bg-card)] border-l-4 transition-all hover:translate-x-1 ${
+              getStatusColor(product.status).border
+            }`}
           >
             <div className="absolute top-4 right-4">
-              <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/10 text-yellow-600 dark:text-yellow-500 border border-yellow-200 dark:border-yellow-500/20 flex items-center gap-1.5 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
-                Pending Review
+              <span
+                className={`text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider border ${
+                  getStatusColor(product.status).badge
+                }`}
+              >
+                {getStatusIcon(product.status)}
+                <span
+                  className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                    getStatusColor(product.status).dot
+                  }`}
+                />
+                {product.status}
               </span>
             </div>
 
