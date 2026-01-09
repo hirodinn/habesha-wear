@@ -210,7 +210,12 @@ const Cart = () => {
                 </div>
 
                 <button
-                  onClick={() => dispatch(removeItem(item.productId))}
+                  onClick={() => {
+                    const temp = cartItems.filter(
+                      (cart) => cart.productId !== item.productId
+                    );
+                    dispatch(setItems(temp));
+                  }}
                   className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                 >
                   <Trash2 size={20} />
