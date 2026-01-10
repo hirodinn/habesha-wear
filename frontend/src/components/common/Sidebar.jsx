@@ -98,13 +98,15 @@ const Sidebar = () => {
 
         {/* Navigation Section */}
         <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
-          <div
-            className={`mb-4 px-2 text-[10px] font-bold uppercase tracking-widest text-(--text-secondary) opacity-50 transition-opacity duration-300 ${
-              isCollapsed ? "opacity-0" : "opacity-100"
-            }`}
-          >
-            Main Menu
-          </div>
+          {user?.role !== "admin" && user?.role !== "owner" && (
+            <div
+              className={`mb-4 px-2 text-[10px] font-bold uppercase tracking-widest text-(--text-secondary) opacity-50 transition-all duration-300 whitespace-nowrap overflow-hidden ${
+                isCollapsed ? "opacity-0 w-0" : "opacity-100 w-full"
+              }`}
+            >
+              Main Menu
+            </div>
+          )}
           {user?.role !== "admin" && user?.role !== "owner" && (
             <NavItem
               to="/"
@@ -128,8 +130,8 @@ const Sidebar = () => {
           {(user?.role === "admin" || user?.role === "owner") && (
             <>
               <div
-                className={`mt-6 mb-4 px-2 text-[10px] font-bold uppercase tracking-widest text-(--text-secondary) opacity-50 transition-opacity duration-300 ${
-                  isCollapsed ? "opacity-0" : "opacity-100"
+                className={`mt-6 mb-4 px-2 text-[10px] font-bold uppercase tracking-widest text-(--text-secondary) opacity-50 transition-all duration-300 whitespace-nowrap overflow-hidden ${
+                  isCollapsed ? "opacity-0 w-0" : "opacity-100 w-full"
                 }`}
               >
                 Management
