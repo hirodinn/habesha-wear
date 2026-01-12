@@ -398,43 +398,55 @@ const VendorView = () => {
               getStatusColor(product.status).border
             }`}
           >
-            <div className="absolute top-4 right-4">
-              <span
-                className={`text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider border ${
-                  getStatusColor(product.status).badge
-                }`}
-              >
-                {getStatusIcon(product.status)}
-                <span
-                  className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                    getStatusColor(product.status).dot
-                  }`}
-                />
-                {product.status}
-              </span>
-            </div>
-
-            {/* Product Images */}
-            {product.images && product.images.length > 0 ? (
-              <div className="mb-3">
-                <div className="relative h-40 bg-(--bg-main) rounded-lg overflow-hidden">
+            {/* Product Header & Images */}
+            <div className="relative mb-4">
+              {product.images && product.images.length > 0 ? (
+                <div className="relative h-48 bg-(--bg-main) rounded-xl overflow-hidden group/img">
                   <img
                     src={product.images[0]}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-110"
                   />
                   {product.images.length > 1 && (
-                    <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded-full flex items-center gap-1">
+                    <div className="absolute bottom-2 right-2 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-full flex items-center gap-1">
                       <ImageIcon size={12} />
                       {product.images.length}
                     </div>
                   )}
+                  {/* Status Badge Over Image */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <span
+                      className={`text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider border backdrop-blur-md ${
+                        getStatusColor(product.status).badge
+                      }`}
+                    >
+                      {getStatusIcon(product.status)}
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                          getStatusColor(product.status).dot
+                        }`}
+                      />
+                      {product.status}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              ) : (
+                <div className="flex justify-between items-start">
+                  <Package className="w-10 h-10 text-(--text-secondary) opacity-20" />
+                  <span
+                    className={`text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider border ${
+                      getStatusColor(product.status).badge
+                    }`}
+                  >
+                    {getStatusIcon(product.status)}
+                    {product.status}
+                  </span>
+                </div>
+              )}
+            </div>
 
-            <div className="mb-4 pt-2">
-              <h3 className="font-bold text-lg text-(--text-main) mb-1">
+            <div className="mb-4">
+              <h3 className="font-bold text-lg text-(--text-main) mb-1 truncate">
                 {product.name}
               </h3>
               <p className="text-(--text-secondary) text-sm line-clamp-2 min-h-[40px]">
