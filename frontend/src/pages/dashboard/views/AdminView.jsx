@@ -8,17 +8,37 @@ import {
   ShoppingBag,
   AlertCircle,
   TrendingUp,
+  Package,
+  Layers,
+  ShoppingCart,
+  Truck,
 } from "lucide-react";
 
 const AdminView = () => {
   const [pendingProducts, setPendingProducts] = useState([]);
-  const [stats, setStats] = useState({ users: 0, products: 0 });
+  const [stats, setStats] = useState({
+    users: 0,
+    products: 0,
+    pendingProducts: 0,
+    orders: 0,
+    carts: 0,
+  });
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
 
   useEffect(() => {
     fetchPendingProducts();
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get("/api/stats");
+      setStats(response.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
 
   const fetchPendingProducts = async () => {
     try {
@@ -40,6 +60,7 @@ const AdminView = () => {
       await axios.delete(`/api/preproducts/${_id}`);
       setActionMessage({ type: "success", text: `Approved ${product.name}` });
       fetchPendingProducts();
+      fetchStats();
     } catch (error) {
       console.error(error);
       setActionMessage({
@@ -68,6 +89,7 @@ const AdminView = () => {
         text: "Product request rejected/deleted.",
       });
       fetchPendingProducts();
+      fetchStats();
     } catch (error) {
       setActionMessage({ type: "error", text: "Rejection failed." });
     } finally {
@@ -105,22 +127,17 @@ const AdminView = () => {
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)]">
           <div className="absolute right-0 top-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-all" />
           <div className="flex justify-between items-start mb-4">
             <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-              <ShoppingBag className="text-blue-600 dark:text-blue-400 w-5 h-5" />
+              <Package className="text-blue-600 dark:text-blue-400 w-5 h-5" />
             </div>
-            <span className="text-xs font-bold text-green-500 flex items-center gap-1">
-              <TrendingUp size={12} /> +12%
-            </span>
           </div>
-          <p className="text-[var(--text-secondary)] text-sm">
-            Pending Approvals
-          </p>
+          <p className="text-[var(--text-secondary)] text-sm">Total Products</p>
           <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
-            {pendingProducts.length}
+            {stats.products}
           </p>
         </div>
 
@@ -131,24 +148,55 @@ const AdminView = () => {
               <Users className="text-sky-600 dark:text-sky-400 w-5 h-5" />
             </div>
           </div>
-          <p className="text-[var(--text-secondary)] text-sm">Total Vendors</p>
+          <p className="text-[var(--text-secondary)] text-sm">Total Users</p>
           <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
-            --
+            {stats.users}
+          </p>
+        </div>
+
+        <div className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)]">
+          <div className="absolute right-0 top-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl group-hover:bg-orange-500/10 transition-all" />
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+              <Layers className="text-orange-600 dark:text-orange-400 w-5 h-5" />
+            </div>
+            {stats.pendingProducts > 0 && (
+              <span className="text-xs font-bold text-orange-500 flex items-center gap-1">
+                <AlertCircle size={12} /> Action Needed
+              </span>
+            )}
+          </div>
+          <p className="text-[var(--text-secondary)] text-sm">
+            Pending Approval
+          </p>
+          <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
+            {stats.pendingProducts}
+          </p>
+        </div>
+
+        <div className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)]">
+          <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all" />
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg">
+              <Truck className="text-indigo-600 dark:text-indigo-400 w-5 h-5" />
+            </div>
+          </div>
+          <p className="text-[var(--text-secondary)] text-sm">Total Orders</p>
+          <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
+            {stats.orders}
           </p>
         </div>
 
         <div className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)]">
           <div className="absolute right-0 top-0 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl group-hover:bg-pink-500/10 transition-all" />
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-              <Shield className="text-blue-600 dark:text-blue-400 w-5 h-5" />
+            <div className="p-2 bg-pink-100 dark:bg-pink-900/20 rounded-lg">
+              <ShoppingCart className="text-pink-600 dark:text-pink-400 w-5 h-5" />
             </div>
           </div>
-          <p className="text-[var(--text-secondary)] text-sm">
-            Platform Health
-          </p>
+          <p className="text-[var(--text-secondary)] text-sm">Active Carts</p>
           <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
-            98%
+            {stats.carts}
           </p>
         </div>
       </div>

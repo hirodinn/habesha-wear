@@ -116,15 +116,13 @@ const Sidebar = () => {
               location={location}
             />
           )}
-          {user && user.role !== "admin" && user.role !== "owner" && (
-            <NavItem
-              to="/dashboard"
-              icon={LayoutDashboard}
-              label="Dashboard"
-              isCollapsed={isCollapsed}
-              location={location}
-            />
-          )}
+          <NavItem
+            to="/dashboard"
+            icon={LayoutDashboard}
+            label="Dashboard"
+            isCollapsed={isCollapsed}
+            location={location}
+          />
 
           {/* Admin/Owner Direct Links */}
           {(user?.role === "admin" || user?.role === "owner") && (
