@@ -159,4 +159,50 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.post("/add-admin", async (req, res) => {
+  const token = req.cookies.token;
+  if (!token)
+    return res.status(401).json({ success: false, message: "Access denied" });
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  if (decoded.role !== "owner")
+    return res.status(403).json({
+      success: false,
+      message: "Only owners are allowed to add admins",
+    });
+
+  const { error } = validateNewUser(req.body);
+  if (error)
+    return res
+      .status(400)
+      .json({ success: false, message: error.details[0].message });
+
+  try {
+    let user = await User.findOne({ email: req.body.email });
+    if (user)
+      return res
+        .status(400)
+        .json({ success: false, message: "User already registered" });
+
+    user = new User({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      role: "admin",
+    });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+    await user.save();
+
+    const { password, ...userWithoutPassword } = user.toObject();
+    res.status(200).send({
+      success: true,
+      message: "Admin created successfully",
+      user: userWithoutPassword,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 export default router;
