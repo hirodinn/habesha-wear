@@ -30,7 +30,7 @@ export function validateNewPreProduct(preProduct) {
     price: Joi.number().min(0).required(),
     category: Joi.string().required(),
     stock: Joi.number().min(0).required(),
-    images: Joi.array().items(Joi.string().uri()),
+    images: Joi.array().items(Joi.string().uri()).min(1).required(),
     status: Joi.string()
       .valid("pending", "accepted", "rejected")
       .default("pending"),

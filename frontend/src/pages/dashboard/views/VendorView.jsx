@@ -81,6 +81,15 @@ const VendorView = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (selectedImages.length === 0) {
+      setMessage({
+        type: "error",
+        text: "Please select at least one image for your product.",
+      });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
@@ -172,12 +181,12 @@ const VendorView = () => {
 
   return (
     <div className="space-y-8 animate-fade-in relative">
-      <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-(--border-color) pb-6">
         <div>
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-sky-400 to-blue-600 mb-1">
             Vendor Portal
           </h1>
-          <p className="text-[var(--text-secondary)] text-sm">
+          <p className="text-(--text-secondary) text-sm">
             Manage your inventory and submissions
           </p>
         </div>
@@ -210,7 +219,7 @@ const VendorView = () => {
 
       {showForm && (
         <div className="card-standard p-6 md:p-8 animate-fade-in shadow-xl">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-[var(--text-main)]">
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-(--text-main)">
             <Package className="text-sky-500" />
             Product Details
           </h2>
@@ -220,7 +229,7 @@ const VendorView = () => {
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-sm font-medium text-(--text-secondary)">
                 Product Name
               </label>
               <input
@@ -235,7 +244,7 @@ const VendorView = () => {
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-sm font-medium text-(--text-secondary)">
                 Description
               </label>
               <textarea
@@ -251,7 +260,7 @@ const VendorView = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-sm font-medium text-(--text-secondary)">
                 Price (Birr)
               </label>
               <input
@@ -267,7 +276,7 @@ const VendorView = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-sm font-medium text-(--text-secondary)">
                 Stock Quantity
               </label>
               <input
@@ -284,8 +293,8 @@ const VendorView = () => {
 
             {/* Image Upload Section */}
             <div className="md:col-span-2 space-y-3">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
-                Product Images (Optional, max 5)
+              <label className="text-sm font-medium text-(--text-secondary)">
+                Product Images (Required, max 5)
               </label>
 
               <div className="border-2 border-dashed border-(--border-color) rounded-xl p-6 text-center hover:border-sky-500/50 transition-colors cursor-pointer">
@@ -339,7 +348,7 @@ const VendorView = () => {
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-sm font-medium text-(--text-secondary)">
                 Category
               </label>
               <select
@@ -378,14 +387,14 @@ const VendorView = () => {
       )}
 
       {/* Product List */}
-      <h3 className="text-lg font-semibold text-[var(--text-secondary)] mt-8 mb-4">
+      <h3 className="text-lg font-semibold text-(--text-secondary) mt-8 mb-4">
         Submission History
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {preProducts.map((product) => (
           <div
             key={product._id}
-            className={`card-standard p-5 relative group bg-[var(--bg-card)] border-l-4 transition-all hover:translate-x-1 ${
+            className={`card-standard p-5 relative group bg-(--bg-card) border-l-4 transition-all hover:translate-x-1 ${
               getStatusColor(product.status).border
             }`}
           >
@@ -425,40 +434,40 @@ const VendorView = () => {
             ) : null}
 
             <div className="mb-4 pt-2">
-              <h3 className="font-bold text-lg text-[var(--text-main)] mb-1">
+              <h3 className="font-bold text-lg text-(--text-main) mb-1">
                 {product.name}
               </h3>
-              <p className="text-[var(--text-secondary)] text-sm line-clamp-2 min-h-[40px]">
+              <p className="text-(--text-secondary) text-sm line-clamp-2 min-h-[40px]">
                 {product.description}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-4">
-              <span className="px-2 py-1 bg-[var(--bg-main)] rounded-md text-xs text-[var(--text-secondary)] border border-[var(--border-color)]">
+              <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color)">
                 {product.category}
               </span>
-              <span className="px-2 py-1 bg-[var(--bg-main)] rounded-md text-xs text-[var(--text-secondary)] border border-[var(--border-color)]">
+              <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color)">
                 Stock: {product.stock}
               </span>
             </div>
 
-            <div className="pt-4 border-t border-[var(--border-color)] flex justify-between items-center">
-              <span className="text-[var(--text-main)] font-bold">
+            <div className="pt-4 border-t border-(--border-color) flex justify-between items-center">
+              <span className="text-(--text-main) font-bold">
                 {product.price} Birr
               </span>
-              <button className="text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors">
+              <button className="text-(--text-secondary) hover:text-(--text-main) transition-colors">
                 <ChevronRight size={20} />
               </button>
             </div>
           </div>
         ))}
         {preProducts.length === 0 && !loading && (
-          <div className="col-span-full py-16 text-center border-2 border-dashed border-[var(--border-color)] rounded-3xl bg-[var(--bg-card)]">
-            <Package className="w-12 h-12 mx-auto mb-3 text-[var(--text-secondary)] opacity-50" />
-            <p className="text-[var(--text-main)] font-medium">
+          <div className="col-span-full py-16 text-center border-2 border-dashed border-(--border-color) rounded-3xl bg-(--bg-card)">
+            <Package className="w-12 h-12 mx-auto mb-3 text-(--text-secondary) opacity-50" />
+            <p className="text-(--text-main) font-medium">
               No products submitted yet.
             </p>
-            <p className="text-[var(--text-secondary)] text-sm">
+            <p className="text-(--text-secondary) text-sm">
               Use the form above to add your first item.
             </p>
           </div>
