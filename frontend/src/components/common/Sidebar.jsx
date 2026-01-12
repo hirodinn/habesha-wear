@@ -20,6 +20,7 @@ import {
   Clock,
   Users,
   Tag,
+  Shield,
 } from "lucide-react";
 
 const NavItem = ({ to, icon: Icon, label, badge, isCollapsed, location }) => {
@@ -148,6 +149,15 @@ const Sidebar = () => {
                 isCollapsed={isCollapsed}
                 location={location}
               />
+              {user?.role === "owner" && (
+                <NavItem
+                  to="/admin/admins"
+                  icon={Shield}
+                  label="Admins"
+                  isCollapsed={isCollapsed}
+                  location={location}
+                />
+              )}
               <NavItem
                 to="/admin/orders"
                 icon={Package}

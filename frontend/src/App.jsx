@@ -17,6 +17,7 @@ import AdminUsersView from "./pages/dashboard/AdminUsersView";
 import AdminOrdersView from "./pages/dashboard/AdminOrdersView";
 import AdminProductsView from "./pages/dashboard/AdminProductsView";
 import AdminCartsView from "./pages/dashboard/AdminCartsView";
+import AdminAdminsView from "./pages/dashboard/AdminAdminsView";
 
 const Home = () => (
   <div className="space-y-16 py-8 pt-1">
@@ -49,6 +50,7 @@ function App() {
         <Route path="/admin/orders" element={<AdminOrdersView />} />
         <Route path="/admin/products" element={<AdminProductsView />} />
         <Route path="/admin/carts" element={<AdminCartsView />} />
+        <Route path="/admin/admins" element={<AdminAdminsView />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
