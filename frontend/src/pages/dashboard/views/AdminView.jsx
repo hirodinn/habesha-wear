@@ -22,8 +22,11 @@ const AdminView = () => {
 
   const fetchPendingProducts = async () => {
     try {
-      const response = await axios.get("/api/preproducts");
-      setPendingProducts(response.data);
+      let response = await axios.get("/api/preproducts");
+      console.log(response);
+      response = response.data.filter((res) => res.status === "pending");
+      console.log(response);
+      setPendingProducts(response.data || []);
     } catch (error) {
       console.error("Error fetching pending products:", error);
     }
