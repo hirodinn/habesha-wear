@@ -3,7 +3,7 @@ import { loginUser, registerUser, logoutUser, loadUser } from "./userAction";
 
 const initialState = {
   user: null,
-  darkMode: false,
+  darkMode: localStorage.getItem("darkMode") || false,
   isSidebarCollapsed: false,
   loading: false,
   error: null,
@@ -13,6 +13,7 @@ export const userReducer = createReducer(initialState, (builder) => {
   builder
     .addCase("TOGGLE_DARK_MODE", (state) => {
       state.darkMode = !state.darkMode;
+      localStorage.setItem("darkMode", state.darkMode);
     })
     .addCase("TOGGLE_SIDEBAR", (state) => {
       state.isSidebarCollapsed = !state.isSidebarCollapsed;
