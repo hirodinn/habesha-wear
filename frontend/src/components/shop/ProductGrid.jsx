@@ -101,8 +101,10 @@ const ProductGrid = ({ isPublic = false }) => {
             >
               <option value="all">All Categories</option>
               <option value="clothing">Clothing</option>
+              <option value="modern">Modern</option>
               <option value="footwear">Footwear</option>
               <option value="accessories">Accessories</option>
+              <option value="traditional">Traditional</option>
             </select>
           </div>
         </div>

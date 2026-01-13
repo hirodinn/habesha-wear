@@ -363,7 +363,7 @@ const VendorView = () => {
                   Select Category
                 </option>
                 <option value="clothing">Clothing</option>
-                <option value="footwear">Footwear</option>
+                <option value="modern">Modern</option>
                 <option value="accessories">Accessories</option>
                 <option value="traditional">Traditional</option>
               </select>
