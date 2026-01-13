@@ -4,6 +4,22 @@ import { registerUser } from "../../redux/userAction";
 import { useNavigate, Link } from "react-router-dom";
 import { Loader2, User, ShoppingBag, Store } from "lucide-react";
 
+const InputGroup = ({ label, type, value, onChange, placeholder }) => (
+  <div className="space-y-1.5">
+    <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">
+      {label}
+    </label>
+    <input
+      type={type}
+      required
+      className="input-field"
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+    />
+  </div>
+);
+
 const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -25,22 +41,6 @@ const Register = () => {
     e.preventDefault();
     dispatch(registerUser(formData));
   };
-
-  const InputGroup = ({ label, type, value, onChange, placeholder }) => (
-    <div className="space-y-1.5">
-      <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">
-        {label}
-      </label>
-      <input
-        type={type}
-        required
-        className="input-field"
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-      />
-    </div>
-  );
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center relative">
