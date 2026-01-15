@@ -7,6 +7,8 @@ import {
   CheckCircle,
   XCircle,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   X,
   Loader2,
   Upload,
@@ -27,6 +29,7 @@ const VendorView = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [expandedProductId, setExpandedProductId] = useState(null);
 
   useEffect(() => {
     fetchPreProducts();
@@ -449,10 +452,35 @@ const VendorView = () => {
               <h3 className="font-bold text-lg text-(--text-main) mb-1 truncate">
                 {product.name}
               </h3>
-              <p className="text-(--text-secondary) text-sm line-clamp-2 min-h-[40px]">
+              <p
+                className={`text-(--text-secondary) text-sm leading-relaxed ${
+                  expandedProductId !== product._id
+                    ? "line-clamp-2 min-h-[40px]"
+                    : ""
+                }`}
+              >
                 {product.description}
               </p>
             </div>
+
+            {expandedProductId === product._id && (
+              <div className="mb-6 space-y-4 animate-fade-in">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
+                  Full Image Gallery ({product.images?.length || 0})
+                </h4>
+                <div className="grid grid-cols-3 gap-3">
+                  {product.images?.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`${product.name} gallery ${idx + 1}`}
+                      className="w-full h-20 object-cover rounded-lg border border-(--border-color) hover:scale-105 transition-transform cursor-pointer"
+                      onClick={() => window.open(img, "_blank")}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2 mb-4">
               <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color)">
@@ -461,14 +489,35 @@ const VendorView = () => {
               <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color)">
                 Stock: {product.stock}
               </span>
+              {expandedProductId === product._id && (
+                <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color) font-mono">
+                  ID: {product._id}
+                </span>
+              )}
             </div>
 
             <div className="pt-4 border-t border-(--border-color) flex justify-between items-center">
-              <span className="text-(--text-main) font-bold">
+              <span className="text-(--text-main) font-bold text-lg">
                 {product.price} Birr
               </span>
-              <button className="text-(--text-secondary) hover:text-(--text-main) transition-colors">
-                <ChevronRight size={20} />
+              <button
+                onClick={() =>
+                  setExpandedProductId(
+                    expandedProductId === product._id ? null : product._id
+                  )
+                }
+                className="p-2 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-lg transition-all cursor-pointer flex items-center gap-1 group/btn"
+              >
+                <span className="text-xs font-bold opacity-0 group-hover/btn:opacity-100 transition-opacity">
+                  {expandedProductId === product._id
+                    ? "Show Less"
+                    : "Show More"}
+                </span>
+                {expandedProductId === product._id ? (
+                  <ChevronUp size={20} />
+                ) : (
+                  <ChevronDown size={20} />
+                )}
               </button>
             </div>
           </div>

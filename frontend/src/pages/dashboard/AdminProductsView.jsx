@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
 import {
   Tag,
@@ -7,6 +7,8 @@ import {
   AlertCircle,
   ShoppingBag,
   ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 const AdminProductsView = () => {
@@ -14,6 +16,7 @@ const AdminProductsView = () => {
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedProductId, setExpandedProductId] = useState(null);
 
   const fetchProducts = async () => {
     try {
@@ -124,77 +127,165 @@ const AdminProductsView = () => {
             </thead>
             <tbody className="divide-y divide-(--border-color)">
               {filteredProducts.map((product) => (
-                <tr
-                  key={product._id}
-                  className="group hover:bg-sky-500/5 transition-colors"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-(--bg-main) border border-(--border-color) shrink-0">
-                        {product.images?.[0] ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-300">
-                            <ShoppingBag size={20} />
+                <Fragment key={product._id}>
+                  <tr
+                    className={`group transition-colors ${
+                      expandedProductId === product._id
+                        ? "bg-sky-500/10"
+                        : "hover:bg-sky-500/5"
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-(--bg-main) border border-(--border-color) shrink-0">
+                          {product.images?.[0] ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <ShoppingBag size={20} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-sm text-(--text-main) truncate">
+                            {product.name}
+                          </h3>
+                          <p className="text-[10px] text-(--text-secondary) truncate max-w-[200px]">
+                            {product.description}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 rounded-md bg-(--bg-main) text-[10px] font-bold uppercase tracking-wider text-(--text-secondary) border border-(--border-color)">
+                        {product.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-sm text-sky-500">
+                        {product.price} Birr
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-sm font-bold ${
+                            product.stock < 5
+                              ? "text-red-500"
+                              : "text-(--text-main)"
+                          }`}
+                        >
+                          {product.stock}
+                        </span>
+                        <span className="text-[10px] text-(--text-secondary) font-medium uppercase tracking-tighter">
+                          Units
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <button
+                          onClick={() =>
+                            setExpandedProductId(
+                              expandedProductId === product._id
+                                ? null
+                                : product._id
+                            )
+                          }
+                          className="p-2 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-lg transition-all cursor-pointer"
+                          title={
+                            expandedProductId === product._id
+                              ? "Collapse Details"
+                              : "Expand Details"
+                          }
+                        >
+                          {expandedProductId === product._id ? (
+                            <ChevronUp size={18} />
+                          ) : (
+                            <ChevronDown size={18} />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(product)}
+                          disabled={loading}
+                          className="p-2 text-(--text-secondary) hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all cursor-pointer"
+                          title="Delete Product"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {expandedProductId === product._id && (
+                    <tr className="bg-sky-500/2 animate-fade-in">
+                      <td
+                        colSpan="5"
+                        className="px-6 py-8 border-b border-(--border-color)"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
+                              Product Description
+                            </h4>
+                            <p className="text-sm text-(--text-main) leading-relaxed">
+                              {product.description}
+                            </p>
+                            <div className="pt-4 flex gap-4">
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Product ID
+                                </span>
+                                <span className="font-mono text-xs text-(--text-main)">
+                                  {product._id}
+                                </span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Vendor ID
+                                </span>
+                                <span className="font-mono text-xs text-(--text-main)">
+                                  {product.userId || "N/A"}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm text-(--text-main) truncate">
-                          {product.name}
-                        </h3>
-                        <p className="text-[10px] text-(--text-secondary) truncate max-w-[200px]">
-                          {product.description}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded-md bg-(--bg-main) text-[10px] font-bold uppercase tracking-wider text-(--text-secondary) border border-(--border-color)">
-                      {product.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-bold text-sm text-sky-500">
-                      {product.price} Birr
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-sm font-bold ${
-                          product.stock < 5
-                            ? "text-red-500"
-                            : "text-(--text-main)"
-                        }`}
-                      >
-                        {product.stock}
-                      </span>
-                      <span className="text-[10px] text-(--text-secondary) font-medium uppercase tracking-tighter">
-                        Units
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end items-center gap-2">
-                      <button className="p-2 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-lg transition-all cursor-pointer">
-                        <ExternalLink size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product)}
-                        disabled={loading}
-                        className="p-2 text-(--text-secondary) hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all cursor-pointer"
-                        title="Delete Product"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                          <div className="space-y-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
+                              All Images ({product.images?.length || 0})
+                            </h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              {product.images?.map((img, idx) => (
+                                <img
+                                  key={idx}
+                                  src={img}
+                                  alt={`${product.name} ${idx + 1}`}
+                                  className="w-full h-24 object-cover rounded-xl border border-(--border-color) hover:scale-105 transition-transform cursor-pointer"
+                                  onClick={() => window.open(img, "_blank")}
+                                />
+                              ))}
+                              {(!product.images ||
+                                product.images.length === 0) && (
+                                <div className="col-span-3 py-8 flex flex-col items-center justify-center bg-(--bg-main) rounded-xl border border-dashed border-(--border-color) text-(--text-secondary)">
+                                  <ShoppingBag
+                                    size={24}
+                                    className="opacity-20 mb-2"
+                                  />
+                                  <span className="text-xs">
+                                    No images available
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
