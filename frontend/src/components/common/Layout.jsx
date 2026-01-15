@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
           {children}
         </main>
 
-        <footer className="border-t border-(--border-color) py-6 relative z-10 bg-(--bg-card)/50 backdrop-blur-sm mt-auto mb-20 md:mb-0">
+        <footer className="py-6 relative z-10 mt-auto mb-20 md:mb-0">
           <div className="container mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="text-2xl font-display font-bold bg-clip-text text-transparent bg-linear-to-r from-gray-700 to-gray-900 dark:from-gray-400 dark:to-gray-200">
