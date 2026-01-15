@@ -248,7 +248,7 @@ const AdminProductsView = () => {
                                   Vendor ID
                                 </span>
                                 <span className="font-mono text-xs text-(--text-main)">
-                                  {product.userId || "N/A"}
+                                  {product.ownedBy || "N/A"}
                                 </span>
                               </div>
                             </div>

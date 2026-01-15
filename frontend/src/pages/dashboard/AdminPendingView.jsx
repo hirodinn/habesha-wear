@@ -200,7 +200,7 @@ const AdminPendingView = () => {
                         Vendor ID
                       </span>
                       <span className="font-medium text-(--text-main)">
-                        {product.userId || "N/A"}
+                        {product.ownedBy || "N/A"}
                       </span>
                     </div>
                   )}
