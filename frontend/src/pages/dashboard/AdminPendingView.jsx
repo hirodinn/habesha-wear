@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
 import {
   Check,
@@ -125,166 +125,194 @@ const AdminPendingView = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4">
-        {filteredProducts.map((product) => (
-          <div
-            key={product._id}
-            className={`card-standard p-6 flex flex-col gap-6 group transition-all bg-(--bg-card) ${
-              expandedProductId === product._id
-                ? "border-sky-500/50"
-                : "hover:border-sky-500/30"
-            }`}
-          >
-            <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-              {/* Product Images */}
-              {product.images && product.images.length > 0 ? (
-                <div className="w-full md:w-48 shrink-0">
-                  <div className="grid grid-cols-2 gap-2">
-                    {product.images.slice(0, 4).map((img, idx) => (
-                      <img
-                        key={idx}
-                        src={img}
-                        alt={`${product.name} ${idx + 1}`}
-                        className="w-full h-20 object-cover rounded-lg border-2 border-(--border-color) hover:scale-105 transition-transform cursor-pointer"
-                      />
-                    ))}
-                  </div>
-                  {product.images.length > 4 && (
-                    <p className="text-xs text-(--text-secondary) text-center mt-1">
-                      +{product.images.length - 4} more
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="w-full md:w-48 h-20 shrink-0 bg-(--bg-main) rounded-lg border-2 border-dashed border-(--border-color) flex items-center justify-center">
-                  <ImageIcon className="w-8 h-8 text-(--text-secondary) opacity-30" />
-                </div>
-              )}
-
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-bold text-xl text-(--text-main)">
-                    {product.name}
-                  </h3>
-                  <span className="px-2 py-0.5 rounded-full bg-(--bg-main) text-xs text-(--text-secondary) border border-(--border-color) uppercase tracking-wide">
-                    {product.category}
-                  </span>
-                </div>
-                <p
-                  className={`text-(--text-secondary) text-sm mb-4 max-w-2xl leading-relaxed ${
-                    expandedProductId !== product._id ? "line-clamp-2" : ""
-                  }`}
-                >
-                  {product.description}
-                </p>
-                <div className="flex flex-wrap gap-6 text-sm">
-                  <div className="flex flex-col">
-                    <span className="text-(--text-secondary) text-xs uppercase tracking-wider">
-                      Price
-                    </span>
-                    <span className="font-bold text-(--text-main) text-lg">
-                      {product.price} Birr
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-(--text-secondary) text-xs uppercase tracking-wider">
-                      Stock
-                    </span>
-                    <span className="font-bold text-(--text-main) text-lg">
-                      {product.stock} Units
-                    </span>
-                  </div>
-                  {expandedProductId === product._id && (
-                    <div className="flex flex-col">
-                      <span className="text-(--text-secondary) text-xs uppercase tracking-wider">
-                        Vendor ID
-                      </span>
-                      <span className="font-medium text-(--text-main)">
-                        {product.ownedBy || "N/A"}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-row md:flex-col items-center justify-end gap-3 w-full md:w-auto mt-4 md:mt-0">
-                <button
-                  onClick={() =>
-                    setExpandedProductId(
-                      expandedProductId === product._id ? null : product._id
-                    )
-                  }
-                  className="p-2.5 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-xl transition-all border border-(--border-color) hover:border-sky-500/30 cursor-pointer"
-                  title={
-                    expandedProductId === product._id
-                      ? "Collapse Details"
-                      : "Expand Details"
-                  }
-                >
-                  {expandedProductId === product._id ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
-                </button>
-                <div className="flex items-center gap-2 flex-1 md:flex-none">
-                  <button
-                    onClick={() => handleApprove(product)}
-                    disabled={loading}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-green-500/20 cursor-pointer disabled:opacity-50 text-sm"
+      <div className="card-standard overflow-hidden bg-(--bg-card)">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-(--bg-main) text-(--text-secondary) text-xs uppercase tracking-wider">
+                <th className="px-6 py-4 font-bold border-b border-(--border-color)">
+                  Product
+                </th>
+                <th className="px-6 py-4 font-bold border-b border-(--border-color)">
+                  Category
+                </th>
+                <th className="px-6 py-4 font-bold border-b border-(--border-color)">
+                  Price
+                </th>
+                <th className="px-6 py-4 font-bold border-b border-(--border-color)">
+                  Stock
+                </th>
+                <th className="px-6 py-4 font-bold border-b border-(--border-color) text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-(--border-color)">
+              {filteredProducts.map((product) => (
+                <Fragment key={product._id}>
+                  <tr
+                    className={`group transition-colors ${
+                      expandedProductId === product._id
+                        ? "bg-sky-500/10"
+                        : "hover:bg-sky-500/5"
+                    }`}
                   >
-                    <Check size={18} /> Approve
-                  </button>
-                  <button
-                    onClick={() => handleReject(product._id)}
-                    disabled={loading}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-transparent border border-(--border-color) hover:bg-red-50 dark:hover:bg-red-900/10 hover:border-red-200 dark:hover:border-red-800 text-(--text-secondary) hover:text-red-500 font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 text-sm"
-                  >
-                    <X size={18} /> Reject
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {expandedProductId === product._id &&
-              product.images &&
-              product.images.length > 4 && (
-                <div className="mt-6 pt-6 border-t border-(--border-color) animate-slide-down">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary) mb-4">
-                    Full Image Gallery ({product.images.length})
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
-                    {product.images.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative aspect-square group/gal"
-                      >
-                        <img
-                          src={img}
-                          alt={`${product.name} gallery ${idx + 1}`}
-                          className="w-full h-full object-cover rounded-xl border-2 border-(--border-color) group-hover/gal:border-sky-500 transition-all cursor-pointer"
-                          onClick={() => window.open(img, "_blank")}
-                        />
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-(--bg-main) border border-(--border-color) shrink-0">
+                          {product.images?.[0] ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <ImageIcon size={20} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-sm text-(--text-main) truncate">
+                            {product.name}
+                          </h3>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 rounded-md bg-(--bg-main) text-[10px] font-bold uppercase tracking-wider text-(--text-secondary) border border-(--border-color)">
+                        {product.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-sm text-sky-500">
+                        {product.price} Birr
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-(--text-main)">
+                          {product.stock}
+                        </span>
+                        <span className="text-[10px] text-(--text-secondary) font-medium uppercase tracking-tighter">
+                          Units
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <button
+                          onClick={() =>
+                            setExpandedProductId(
+                              expandedProductId === product._id
+                                ? null
+                                : product._id
+                            )
+                          }
+                          className="p-2 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-lg transition-all cursor-pointer"
+                          title={
+                            expandedProductId === product._id
+                              ? "Collapse Details"
+                              : "Expand Details"
+                          }
+                        >
+                          {expandedProductId === product._id ? (
+                            <ChevronUp size={18} />
+                          ) : (
+                            <ChevronDown size={18} />
+                          )}
+                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleApprove(product)}
+                            disabled={loading}
+                            className="p-2 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-lg transition-all cursor-pointer"
+                            title="Approve Product"
+                          >
+                            <Check size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleReject(product._id)}
+                            disabled={loading}
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all cursor-pointer"
+                            title="Reject Product"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {expandedProductId === product._id && (
+                    <tr className="bg-sky-500/2 animate-fade-in">
+                      <td
+                        colSpan="5"
+                        className="px-6 py-8 border-b border-(--border-color)"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
+                              Product Description
+                            </h4>
+                            <p className="text-sm text-(--text-main) leading-relaxed">
+                              {product.description}
+                            </p>
+                            <div className="pt-4 flex gap-4">
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Request ID
+                                </span>
+                                <span className="font-mono text-xs text-(--text-main)">
+                                  {product._id}
+                                </span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Vendor ID
+                                </span>
+                                <span className="font-mono text-xs text-(--text-main)">
+                                  {product.ownedBy || "N/A"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
+                              All Images ({product.images?.length || 0})
+                            </h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              {product.images?.map((img, idx) => (
+                                <img
+                                  key={idx}
+                                  src={img}
+                                  alt={`${product.name} ${idx + 1}`}
+                                  className="w-full h-24 object-cover rounded-xl border border-(--border-color) hover:scale-105 transition-transform cursor-pointer"
+                                  onClick={() => window.open(img, "_blank")}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+              {filteredProducts.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="px-6 py-20 text-center">
+                    <Check className="w-12 h-12 mx-auto mb-4 text-green-500/20" />
+                    <p className="text-(--text-secondary)">
+                      {searchTerm
+                        ? "No products match your search."
+                        : "All caught up! No items to approve."}
+                    </p>
+                  </td>
+                </tr>
               )}
-          </div>
-        ))}
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-20 bg-(--bg-card) rounded-3xl border border-(--border-color) border-dashed">
-            <Check className="w-16 h-16 mx-auto mb-4 text-green-500/30" />
-            <h3 className="text-xl font-bold text-(--text-main)">
-              No pending products
-            </h3>
-            <p className="text-(--text-secondary)">
-              {searchTerm
-                ? "No products match your search."
-                : "All caught up! No items to approve."}
-            </p>
-          </div>
-        )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
