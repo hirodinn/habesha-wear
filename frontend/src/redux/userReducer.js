@@ -3,7 +3,7 @@ import { loginUser, registerUser, logoutUser, loadUser } from "./userAction";
 
 const initialState = {
   user: null,
-  darkMode: localStorage.getItem("darkMode") || false,
+  darkMode: localStorage.getItem("darkMode") === "true",
   isSidebarCollapsed: false,
   loading: false,
   error: null,

@@ -10,9 +10,52 @@ import { validateId } from "../utils/validateId.js";
 
 const router = express.Router();
 
+// Top-rated featured products (e.g. limit=3)
+router.get("/featured", async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 3, 10);
+    const products = await Product.find()
+      .sort({ ratingAverage: -1, ratingCount: -1 })
+      .limit(limit)
+      .lean();
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.find();
+    const excludeFeatured = req.query.excludeFeatured === "1";
+    const pageParam = req.query.page;
+    const limitParam = req.query.limit;
+    const usePagination = excludeFeatured || pageParam != null || limitParam != null;
+
+    if (usePagination) {
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 12));
+      let query = {};
+      if (excludeFeatured) {
+        const featured = await Product.find()
+          .sort({ ratingAverage: -1, ratingCount: -1 })
+          .limit(3)
+          .select("_id")
+          .lean();
+        query = { _id: { $nin: featured.map((p) => p._id) } };
+      }
+      const skip = (page - 1) * limit;
+      const [products, total] = await Promise.all([
+        Product.find(query)
+          .sort({ ratingAverage: -1, createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Product.countDocuments(query),
+      ]);
+      return res.json({ products, total, page, limit, totalPages: Math.ceil(total / limit) });
+    }
+
+    const products = await Product.find().sort({ ratingAverage: -1 }).lean();
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });

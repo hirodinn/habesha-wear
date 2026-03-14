@@ -1,63 +1,53 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap");
 @import "tailwindcss";
 
-/* 
-  Force dark mode to be class-based. 
-  In v4, default is 'media', but we want manual toggle. 
-  By using a variant like this, we can control it.
-*/
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-brand-primary: #0ea5e9;
-  --color-brand-secondary: #3b82f6;
-  --color-brand-accent: #60a5fa;
+  --color-gold: #b8860b;
+  --color-gold-light: #d4a84b;
+  --color-gold-dark: #8b6914;
+  --color-burgundy: #800020;
+  --color-burgundy-light: #a52a52;
+  --color-burgundy-dark: #5c0018;
 
-  --font-sans: "Inter", sans-serif;
-  --font-display: "Outfit", sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", serif;
 
   --animate-fade-in: fade-in 0.5s ease-out;
   --animate-slide-up: slide-up 0.5s ease-out;
 
   @keyframes fade-in {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
   }
 
   @keyframes slide-up {
-    0% {
-      transform: translateY(20px);
-      opacity: 0;
-    }
-    100% {
-      transform: translateY(0);
-      opacity: 1;
-    }
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
   }
 }
 
 :root {
-  /* Light Mode Defaults */
-  --bg-main: #f8fafc;
+  --bg-main: #faf8f5;
   --bg-card: #ffffff;
-  --text-main: #0f172a;
-  --text-secondary: #64748b;
-  --border-color: #e2e8f0;
+  --text-main: #1a1510;
+  --text-secondary: #5c5348;
+  --border-color: #e8e2d9;
   --input-bg: #ffffff;
+  --color-gold: #b8860b;
+  --color-burgundy: #800020;
 }
 
 .dark {
-  /* Dark Mode Overrides */
-  --bg-main: #0f172a; /* Slate 900 */
-  --bg-card: #1e293b; /* Slate 800 */
-  --text-main: #f8fafc;
-  --text-secondary: #94a3b8;
-  --border-color: #334155;
-  --input-bg: #020617;
+  --bg-main: #1a1512;
+  --bg-card: #252019;
+  --text-main: #f5f0e8;
+  --text-secondary: #a89f92;
+  --border-color: #3d352c;
+  --input-bg: #1f1b16;
+  --color-gold: #d4a84b;
+  --color-burgundy: #a52a52;
 }
 
 @layer base {
@@ -67,19 +57,14 @@
     color: var(--text-main);
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight text-[var(--text-main)];
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/50 dark:bg-black/50 backdrop-blur-xl border border-[var(--border-color)] shadow-xl;
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-[var(--border-color)] shadow-xl;
   }
 
   .glass-card {
@@ -91,28 +76,29 @@
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-linear-to-r from-sky-400 via-blue-500 to-indigo-600;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-gold)] via-[var(--color-burgundy)] to-[var(--color-burgundy-dark)];
   }
 
   .btn-primary {
-    @apply relative px-6 py-2.5 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300 
-           bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500
-           shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer;
+    @apply relative px-6 py-2.5 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300
+           bg-gradient-to-r from-[var(--color-burgundy)] to-[var(--color-burgundy-dark)]
+           hover:from-[var(--color-burgundy-light)] hover:to-[var(--color-burgundy)]
+           shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer
+           border border-[var(--color-gold)]/30;
   }
 
   .btn-outline {
-    @apply px-6 py-2.5 rounded-xl font-semibold border border-[var(--border-color)] bg-transparent text-[var(--text-main)]
-           hover:bg-[var(--bg-card)] hover:border-sky-500 transition-all duration-300 cursor-pointer;
+    @apply px-6 py-2.5 rounded-xl font-semibold border-2 border-[var(--color-gold)] bg-transparent text-[var(--text-main)]
+           hover:bg-[var(--color-gold)]/10 hover:border-[var(--color-gold)] transition-all duration-300 cursor-pointer;
   }
 
   .input-field {
     @apply w-full rounded-xl px-4 py-3 transition-all duration-300 outline-none
-           bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-main)] placeholder-gray-400
-           focus:border-sky-500 focus:ring-1 focus:ring-sky-500;
+           bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-main)] placeholder-[var(--text-secondary)]
+           focus:border-[var(--color-gold)] focus:ring-1 focus:ring-[var(--color-gold)]/50;
   }
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }

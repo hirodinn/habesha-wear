@@ -1,13 +1,11 @@
-import { useSelector } from "react-redux";
-import Sidebar from "./Sidebar";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import Header from "./Header";
 
 const Layout = ({ children }) => {
-  const { darkMode, isSidebarCollapsed: isCollapsed } = useSelector(
-    (state) => state.auth
-  );
+  const darkMode = useSelector((state) => state.auth.darkMode);
 
-  // Apply dark mode class to html/body
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -17,38 +15,36 @@ const Layout = ({ children }) => {
   }, [darkMode]);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans selection:bg-sky-500/30 relative transition-colors duration-300">
-      {/* Background Ambience (Subtle) */}
+    <div className="min-h-screen flex flex-col font-sans selection:bg-[var(--color-gold)]/20 transition-colors duration-300">
       <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-        {/* Light Mode Blobs (Soft) */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-sky-200/40 dark:bg-sky-900/10 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-200/40 dark:bg-blue-900/10 blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--color-gold)]/5 dark:bg-[var(--color-gold)]/10 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[var(--color-burgundy)]/5 dark:bg-[var(--color-burgundy)]/10 blur-[100px]" />
       </div>
 
-      <Sidebar />
+      <Header />
 
-      <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-500 ${
-          isCollapsed ? "md:ml-20" : "md:ml-72"
-        }`}
-      >
-        <main className="container mx-auto px-6 py-8 relative z-10 flex-1 flex flex-col pb-32 md:pb-12">
-          {children}
-        </main>
+      <main className="flex-1 w-full container mx-auto px-4 sm:px-6 py-8 relative z-10">
+        {children}
+      </main>
 
-        <footer className="py-6 relative z-10 mt-auto mb-20 md:mb-0">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              <div className="text-2xl font-display font-bold bg-clip-text text-transparent bg-linear-to-r from-gray-700 to-gray-900 dark:from-gray-400 dark:to-gray-200">
-                Habesha Wear
-              </div>
-              <div className="text-(--text-secondary) text-sm">
-                © {new Date().getFullYear()} Crafted with precision.
-              </div>
-            </div>
+      <footer className="py-6 mt-auto border-t border-[var(--border-color)] bg-[var(--bg-card)]/50">
+        <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-6">
+            <span className="font-display font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-burgundy)]">
+              Habesha Wear
+            </span>
+            <Link
+              to="/about"
+              className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-gold)] transition-colors"
+            >
+              About
+            </Link>
           </div>
-        </footer>
-      </div>
+          <span className="text-sm text-[var(--text-secondary)]">
+            © {new Date().getFullYear()} — Crafted with precision.
+          </span>
+        </div>
+      </footer>
     </div>
   );
 };

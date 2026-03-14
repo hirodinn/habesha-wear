@@ -90,13 +90,12 @@ const Cart = () => {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in">
-        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
-          <ShoppingBag size={40} className="text-gray-400" />
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/20">
+          <ShoppingBag size={40} className="text-[var(--color-gold)]" />
         </div>
-        <h2 className="text-3xl font-bold mb-4">Your cart is empty</h2>
-        <p className="text-(--text-secondary) mb-8 max-w-md">
-          Please log in to see your saved items and start shopping our unique
-          Habesha collection.
+        <h2 className="font-display text-3xl font-bold mb-4 text-[var(--text-main)]">Your cart is empty</h2>
+        <p className="text-[var(--text-secondary)] mb-8 max-w-md">
+          Please log in to see your saved items and start shopping our unique Habesha collection.
         </p>
         <Link to="/login" className="btn-primary">
           Sign In to Shop
@@ -114,12 +113,12 @@ const Cart = () => {
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-3xl font-bold">Shopping Cart</h1>
+        <h1 className="font-display text-3xl font-bold text-[var(--text-main)]">Shopping Cart</h1>
       </div>
 
       {cartItems.length === 0 ? (
-        <div className="card-standard p-12 text-center flex flex-col items-center">
-          <div className="w-16 h-16 bg-sky-100 dark:bg-sky-900/30 rounded-full flex items-center justify-center mb-4 text-sky-600 dark:text-sky-400">
+        <div className="card-standard p-12 text-center flex flex-col items-center border-[var(--color-gold)]/10">
+          <div className="w-16 h-16 bg-[var(--color-gold)]/10 rounded-full flex items-center justify-center mb-4 text-[var(--color-gold)]">
             <ShoppingBag size={32} />
           </div>
           <h3 className="text-xl font-bold mb-2">Your cart feels lonely</h3>
@@ -139,10 +138,9 @@ const Cart = () => {
                 key={item.productId}
                 className="card-standard p-4 flex gap-6 items-center"
               >
-                <div className="w-24 h-24 bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden flex-shrink-0">
-                  {/* Ideally fetch product image here */}
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <ShoppingBag size={32} className="opacity-20" />
+                <div className="w-24 h-24 bg-[var(--bg-main)] rounded-lg overflow-hidden flex-shrink-0 border border-[var(--border-color)]">
+                  <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]">
+                    <ShoppingBag size={32} className="opacity-40" />
                   </div>
                 </div>
 
@@ -153,7 +151,7 @@ const Cart = () => {
                   <p className="text-sm text-[var(--text-secondary)]">
                     {item.category || "Authentic Wear"}
                   </p>
-                  <p className="font-bold text-sky-600 dark:text-sky-400">
+                  <p className="font-bold text-[var(--color-burgundy)]">
                     {item.price || 0} Birr
                   </p>
                 </div>
@@ -180,7 +178,7 @@ const Cart = () => {
                         })
                       );
                     }}
-                    className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    className="p-1.5 hover:bg-[var(--bg-card)] rounded-lg transition-colors text-[var(--text-main)]"
                   >
                     <Minus size={16} />
                   </button>
@@ -207,20 +205,15 @@ const Cart = () => {
                         })
                       );
                     }}
-                    className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    className="p-1.5 hover:bg-[var(--bg-card)] rounded-lg transition-colors text-[var(--text-main)]"
                   >
                     <Plus size={16} />
                   </button>
                 </div>
 
                 <button
-                  onClick={() => {
-                    const temp = cartItems.filter(
-                      (cart) => cart.productId !== item.productId
-                    );
-                    dispatch(setItems(temp));
-                  }}
-                  className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                  onClick={() => dispatch(removeItem(item.productId))}
+                  className="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
                 >
                   <Trash2 size={20} />
                 </button>
@@ -246,7 +239,7 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between font-bold text-lg pt-3 border-t border-[var(--border-color)]">
                   <span>Total</span>
-                  <span className="text-purple-600 dark:text-purple-400">
+                  <span className="text-[var(--color-burgundy)]">
                     {calculateTotal()} Birr
                   </span>
                 </div>

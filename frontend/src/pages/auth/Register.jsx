@@ -32,9 +32,7 @@ const Register = () => {
   const { loading, error, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
+    if (user) navigate("/dashboard");
   }, [user, navigate]);
 
   const handleSubmit = (e) => {
@@ -45,23 +43,23 @@ const Register = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-sky-500/5 dark:bg-sky-500/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/5 dark:bg-blue-500/20 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[var(--color-gold)]/10 rounded-full blur-[100px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[var(--color-burgundy)]/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="w-full max-w-lg relative z-10 animate-fade-in">
-        <div className="card-standard p-8 md:p-10 shadow-2xl shadow-sky-500/5">
+        <div className="card-standard p-8 md:p-10 shadow-xl border-[var(--color-gold)]/20">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-2 text-[var(--text-main)]">
+            <h2 className="font-display text-3xl font-bold mb-2 text-[var(--text-main)]">
               Create Account
             </h2>
             <p className="text-[var(--text-secondary)]">
-              Join the future of fashion commerce.
+              Join Habesha Wear.
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-200 text-sm flex items-center gap-2 animate-slide-up">
+            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-sm flex items-center gap-2 animate-slide-up">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
               {error.message || "Registration failed"}
             </div>
@@ -77,7 +75,6 @@ const Register = () => {
                 setFormData({ ...formData, name: e.target.value })
               }
             />
-
             <InputGroup
               label="Email Address"
               type="email"
@@ -87,7 +84,6 @@ const Register = () => {
                 setFormData({ ...formData, email: e.target.value })
               }
             />
-
             <InputGroup
               label="Password"
               type="password"
@@ -97,7 +93,6 @@ const Register = () => {
                 setFormData({ ...formData, password: e.target.value })
               }
             />
-
             <div className="space-y-3 pt-2">
               <label className="text-sm font-medium text-[var(--text-secondary)] ml-1">
                 I want to...
@@ -106,17 +101,17 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: "customer" })}
-                  className={`relative p-4 rounded-2xl border text-left transition-all duration-300 group ${
+                  className={`relative p-4 rounded-2xl border text-left transition-all duration-300 ${
                     formData.role === "customer"
-                      ? "bg-sky-50 dark:bg-sky-500/20 border-sky-500/50 ring-1 ring-sky-500/50"
-                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-sky-300 dark:hover:border-sky-700"
+                      ? "bg-[var(--color-burgundy)]/10 border-[var(--color-gold)]/50 ring-1 ring-[var(--color-gold)]/30"
+                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-[var(--color-gold)]/40"
                   }`}
                 >
                   <div
-                    className={`p-2 rounded-lg w-fit mb-3 transition-colors ${
+                    className={`p-2 rounded-lg w-fit mb-3 ${
                       formData.role === "customer"
-                        ? "bg-sky-500 text-white"
-                        : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 group-hover:bg-sky-100 dark:group-hover:bg-sky-500/20 group-hover:text-sky-600 dark:group-hover:text-sky-300"
+                        ? "bg-[var(--color-burgundy)] text-white"
+                        : "bg-[var(--bg-main)] text-[var(--text-secondary)]"
                     }`}
                   >
                     <ShoppingBag size={20} />
@@ -128,21 +123,20 @@ const Register = () => {
                     Browse & Buy
                   </div>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: "vendor" })}
-                  className={`relative p-4 rounded-2xl border text-left transition-all duration-300 group ${
+                  className={`relative p-4 rounded-2xl border text-left transition-all duration-300 ${
                     formData.role === "vendor"
-                      ? "bg-orange-50 dark:bg-orange-500/20 border-orange-500/50 ring-1 ring-orange-500/50"
-                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-orange-300 dark:hover:border-orange-700"
+                      ? "bg-[var(--color-burgundy)]/10 border-[var(--color-gold)]/50 ring-1 ring-[var(--color-gold)]/30"
+                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-[var(--color-gold)]/40"
                   }`}
                 >
                   <div
-                    className={`p-2 rounded-lg w-fit mb-3 transition-colors ${
+                    className={`p-2 rounded-lg w-fit mb-3 ${
                       formData.role === "vendor"
-                        ? "bg-orange-500 text-white"
-                        : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20 group-hover:text-orange-600 dark:group-hover:text-orange-300"
+                        ? "bg-[var(--color-burgundy)] text-white"
+                        : "bg-[var(--bg-main)] text-[var(--text-secondary)]"
                     }`}
                   >
                     <Store size={20} />
@@ -156,7 +150,6 @@ const Register = () => {
                 </button>
               </div>
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -172,12 +165,11 @@ const Register = () => {
               )}
             </button>
           </form>
-
           <p className="mt-8 text-center text-[var(--text-secondary)] text-sm">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="text-purple-600 dark:text-purple-400 font-bold hover:underline"
+              className="text-[var(--color-gold)] font-semibold hover:text-[var(--color-burgundy)]"
             >
               Sign in
             </Link>

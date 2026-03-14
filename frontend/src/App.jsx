@@ -20,10 +20,8 @@ import AdminCartsView from "./pages/dashboard/AdminCartsView";
 import AdminAdminsView from "./pages/dashboard/AdminAdminsView";
 
 const Home = () => (
-  <div className="space-y-16 py-8 pt-1">
-    <div className="container mx-auto">
-      <ProductGrid isPublic={true} />
-    </div>
+  <div className="space-y-8">
+    <ProductGrid />
   </div>
 );
 

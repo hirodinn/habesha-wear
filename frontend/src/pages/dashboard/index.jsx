@@ -10,13 +10,13 @@ const Dashboard = () => {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-        <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-        <p className="text-gray-400 mb-6">
+        <h2 className="font-display text-2xl font-bold mb-2 text-[var(--text-main)]">Access Denied</h2>
+        <p className="text-[var(--text-secondary)] mb-6">
           Please log in to view your dashboard.
         </p>
         <Link
           to="/login"
-          className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          className="btn-primary"
         >
           Go to Login
         </Link>
@@ -36,8 +36,8 @@ const Dashboard = () => {
     default:
       return (
         <div className="text-center py-12">
-          <h2 className="text-xl text-red-500">Unknown Role: {user.role}</h2>
-          <p className="text-gray-400">
+          <h2 className="font-display text-xl text-red-500">Unknown Role: {user.role}</h2>
+          <p className="text-[var(--text-secondary)]">
             Your account has an invalid role configuration.
           </p>
         </div>

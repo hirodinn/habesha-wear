@@ -11,9 +11,7 @@ const Login = () => {
   const { loading, error, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
+    if (user) navigate("/dashboard");
   }, [user, navigate]);
 
   const handleSubmit = (e) => {
@@ -23,24 +21,24 @@ const Login = () => {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center relative">
-      {/* Decorative Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-sky-500/5 dark:bg-sky-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-[var(--color-gold)]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-[var(--color-burgundy)]/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="w-full max-w-md relative z-10 animate-fade-in">
-        <div className="card-standard p-8 md:p-10 shadow-2xl shadow-sky-500/5">
+        <div className="card-standard p-8 md:p-10 shadow-xl border-[var(--color-gold)]/20">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2 text-[var(--text-main)]">
+            <h2 className="font-display text-3xl font-bold mb-2 text-[var(--text-main)]">
               Welcome Back
             </h2>
             <p className="text-[var(--text-secondary)]">
-              Enter your credentials to access your dashboard.
+              Sign in to your account.
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-200 text-sm flex items-center gap-2 animate-slide-up">
+            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-sm flex items-center gap-2 animate-slide-up">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
               {error.message || "Login failed"}
             </div>
@@ -62,18 +60,11 @@ const Login = () => {
                 }
               />
             </div>
-
             <div className="space-y-1.5">
               <div className="flex justify-between items-center ml-1">
                 <label className="text-sm font-medium text-[var(--text-secondary)]">
                   Password
                 </label>
-                <a
-                  href="#"
-                  className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
-                >
-                  Forgot?
-                </a>
               </div>
               <input
                 type="password"
@@ -86,7 +77,6 @@ const Login = () => {
                 }
               />
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -108,7 +98,7 @@ const Login = () => {
               New to Habesha Wear?{" "}
               <Link
                 to="/register"
-                className="text-[var(--text-main)] font-medium hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                className="text-[var(--color-gold)] font-semibold hover:text-[var(--color-burgundy)] transition-colors"
               >
                 Create an account
               </Link>
