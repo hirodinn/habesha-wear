@@ -22,12 +22,12 @@ const Login = () => {
   return (
     <div className="min-h-[70vh] flex items-center justify-center relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-[var(--color-gold)]/10 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-[var(--color-burgundy)]/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-[var(--color-burgundy)]/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="w-full max-w-md relative z-10 animate-fade-in">
-        <div className="card-standard p-8 md:p-10 shadow-xl border-[var(--color-gold)]/20">
+        <div className="card-standard p-8 md:p-10 shadow-xl border-[var(--color-burgundy)]/20">
           <div className="mb-8">
             <h2 className="font-display text-3xl font-bold mb-2 text-[var(--text-main)]">
               Welcome Back
@@ -98,7 +98,7 @@ const Login = () => {
               New to Habesha Wear?{" "}
               <Link
                 to="/register"
-                className="text-[var(--color-gold)] font-semibold hover:text-[var(--color-burgundy)] transition-colors"
+                className="text-[var(--color-burgundy)] font-semibold hover:text-[var(--color-burgundy)] transition-colors"
               >
                 Create an account
               </Link>

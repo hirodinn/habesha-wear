@@ -43,12 +43,12 @@ const Register = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[var(--color-gold)]/10 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[var(--color-burgundy)]/10 rounded-full blur-[100px]" />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[var(--color-burgundy)]/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="w-full max-w-lg relative z-10 animate-fade-in">
-        <div className="card-standard p-8 md:p-10 shadow-xl border-[var(--color-gold)]/20">
+        <div className="card-standard p-8 md:p-10 shadow-xl border-[var(--color-burgundy)]/20">
           <div className="text-center mb-8">
             <h2 className="font-display text-3xl font-bold mb-2 text-[var(--text-main)]">
               Create Account
@@ -103,8 +103,8 @@ const Register = () => {
                   onClick={() => setFormData({ ...formData, role: "customer" })}
                   className={`relative p-4 rounded-2xl border text-left transition-all duration-300 ${
                     formData.role === "customer"
-                      ? "bg-[var(--color-burgundy)]/10 border-[var(--color-gold)]/50 ring-1 ring-[var(--color-gold)]/30"
-                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-[var(--color-gold)]/40"
+                      ? "bg-[var(--color-burgundy)]/10 border-[var(--color-burgundy)]/50 ring-1 ring-[var(--color-burgundy)]/30"
+                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-[var(--color-burgundy)]/40"
                   }`}
                 >
                   <div
@@ -128,8 +128,8 @@ const Register = () => {
                   onClick={() => setFormData({ ...formData, role: "vendor" })}
                   className={`relative p-4 rounded-2xl border text-left transition-all duration-300 ${
                     formData.role === "vendor"
-                      ? "bg-[var(--color-burgundy)]/10 border-[var(--color-gold)]/50 ring-1 ring-[var(--color-gold)]/30"
-                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-[var(--color-gold)]/40"
+                      ? "bg-[var(--color-burgundy)]/10 border-[var(--color-burgundy)]/50 ring-1 ring-[var(--color-burgundy)]/30"
+                      : "bg-[var(--input-bg)] border-[var(--border-color)] hover:border-[var(--color-burgundy)]/40"
                   }`}
                 >
                   <div
@@ -169,7 +169,7 @@ const Register = () => {
             Already have an account?{" "}
             <Link
               to="/login"
-              className="text-[var(--color-gold)] font-semibold hover:text-[var(--color-burgundy)]"
+              className="text-[var(--color-burgundy)] font-semibold hover:text-[var(--color-burgundy)]"
             >
               Sign in
             </Link>

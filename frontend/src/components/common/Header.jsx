@@ -16,22 +16,21 @@ const Header = () => {
   };
 
   const navLinkClass = (path) =>
-    `flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
+    `flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
       location.pathname === path
-        ? "bg-[var(--color-gold)] text-[var(--color-burgundy)]"
-        : "text-[var(--text-main)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-gold)]"
+        ? "bg-[var(--color-burgundy)] text-white"
+        : "text-[var(--text-main)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-burgundy)]"
     }`;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--border-color)] bg-[var(--bg-card)]/95 backdrop-blur-md">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Left: Logo, Shop, Cart */}
-        <nav className="flex items-center gap-1 sm:gap-4">
+    <div className="sticky top-0 z-50 w-full px-4 pt-4 pointer-events-none">
+      <header className="pointer-events-auto w-full max-w-6xl mx-auto h-14 flex items-center justify-between px-5 rounded-2xl bg-[var(--bg-card)]/80 dark:bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-lg shadow-black/5">
+        <nav className="flex items-center gap-1 sm:gap-2">
           <Link
             to="/"
             className="flex items-center gap-2 mr-2 sm:mr-4 text-[var(--text-main)] hover:opacity-90 transition-opacity"
           >
-            <span className="font-display font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-burgundy)]">
+            <span className="font-display font-bold text-lg text-[var(--color-burgundy)]">
               Habesha Wear
             </span>
           </Link>
@@ -52,11 +51,10 @@ const Header = () => {
           )}
         </nav>
 
-        {/* Right: Theme, Account/Login, Logout */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => dispatch(toggleDarkMode())}
-            className="p-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-gold)] transition-all"
+            className="p-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-burgundy)] transition-all"
             title={darkMode ? "Light mode" : "Dark mode"}
             aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
@@ -66,7 +64,7 @@ const Header = () => {
             <>
               <Link
                 to="/dashboard"
-                className="p-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-gold)] transition-all"
+                className="p-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-burgundy)] transition-all"
                 title="Account / Dashboard"
                 aria-label="Dashboard"
               >
@@ -74,7 +72,7 @@ const Header = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="p-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--color-burgundy)]/10 hover:text-red-400 transition-all"
+                className="p-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-red-500/10 hover:text-red-400 transition-all"
                 title="Log out"
                 aria-label="Log out"
               >
@@ -84,7 +82,7 @@ const Header = () => {
           ) : (
             <Link
               to="/login"
-              className="p-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-gold)] transition-all"
+              className="p-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--color-burgundy)]/10 hover:text-[var(--color-burgundy)] transition-all"
               title="Log in"
               aria-label="Log in"
             >
@@ -92,8 +90,8 @@ const Header = () => {
             </Link>
           )}
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
   );
 };
 

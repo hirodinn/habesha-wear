@@ -66,14 +66,14 @@ const CustomerView = () => {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-10 h-10 border-4 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[var(--color-burgundy)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-8 animate-fade-in w-full">
-      <div className="bg-gradient-to-br from-[var(--color-burgundy)] to-[var(--color-burgundy)]/90 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-[var(--color-gold)]/20">
+      <div className="bg-gradient-to-br from-[var(--color-burgundy)] to-[var(--color-burgundy)]/90 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-[var(--color-burgundy)]/20">
         <div className="relative z-10 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2">My Orders</h1>

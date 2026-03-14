@@ -90,8 +90,8 @@ const Cart = () => {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/20">
-          <ShoppingBag size={40} className="text-[var(--color-gold)]" />
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-[var(--color-burgundy)]/10 border border-[var(--color-burgundy)]/20">
+          <ShoppingBag size={40} className="text-[var(--color-burgundy)]" />
         </div>
         <h2 className="font-display text-3xl font-bold mb-4 text-[var(--text-main)]">Your cart is empty</h2>
         <p className="text-[var(--text-secondary)] mb-8 max-w-md">
@@ -117,8 +117,8 @@ const Cart = () => {
       </div>
 
       {cartItems.length === 0 ? (
-        <div className="card-standard p-12 text-center flex flex-col items-center border-[var(--color-gold)]/10">
-          <div className="w-16 h-16 bg-[var(--color-gold)]/10 rounded-full flex items-center justify-center mb-4 text-[var(--color-gold)]">
+        <div className="card-standard p-12 text-center flex flex-col items-center border-[var(--color-burgundy)]/10">
+          <div className="w-16 h-16 bg-[var(--color-burgundy)]/10 rounded-full flex items-center justify-center mb-4 text-[var(--color-burgundy)]">
             <ShoppingBag size={32} />
           </div>
           <h3 className="text-xl font-bold mb-2">Your cart feels lonely</h3>

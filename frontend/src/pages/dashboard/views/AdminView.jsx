@@ -36,11 +36,11 @@ const AdminView = () => {
   return (
     <div className="space-y-10 animate-fade-in pb-12">
       <div className="flex items-center gap-4">
-        <div className="p-3 bg-[var(--color-gold)]/10 rounded-2xl border border-[var(--color-gold)]/20">
+        <div className="p-3 bg-[var(--color-burgundy)]/10 rounded-2xl border border-[var(--color-burgundy)]/20">
           <Shield className="w-8 h-8 text-[var(--color-burgundy)]" />
         </div>
         <div>
-          <h1 className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-gold)] via-[var(--color-burgundy)] to-[var(--color-burgundy)]">
+          <h1 className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-burgundy)] via-[var(--color-burgundy)] to-[var(--color-burgundy)]">
             Command Center
           </h1>
           <p className="text-[var(--text-secondary)]">
@@ -53,14 +53,14 @@ const AdminView = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <Link
           to="/admin/products"
-          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-gold)]/10 hover:border-[var(--color-gold)]/30 transition-colors block"
+          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 transition-colors block"
         >
           <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--color-burgundy)]/5 rounded-full blur-3xl group-hover:bg-[var(--color-burgundy)]/10 transition-all" />
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-[var(--color-gold)]/10 rounded-lg">
+            <div className="p-2 bg-[var(--color-burgundy)]/10 rounded-lg">
               <Package className="text-[var(--color-burgundy)] w-5 h-5" />
             </div>
-            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-gold)]" />
+            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-burgundy)]" />
           </div>
           <p className="text-[var(--text-secondary)] text-sm">Total Products</p>
           <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
@@ -70,14 +70,14 @@ const AdminView = () => {
 
         <Link
           to="/admin/users"
-          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-gold)]/10 hover:border-[var(--color-gold)]/30 transition-colors block"
+          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 transition-colors block"
         >
-          <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--color-gold)]/5 rounded-full blur-3xl group-hover:bg-[var(--color-gold)]/10 transition-all" />
+          <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--color-burgundy)]/5 rounded-full blur-3xl group-hover:bg-[var(--color-burgundy)]/10 transition-all" />
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-[var(--color-gold)]/10 rounded-lg">
+            <div className="p-2 bg-[var(--color-burgundy)]/10 rounded-lg">
               <Users className="text-[var(--color-burgundy)] w-5 h-5" />
             </div>
-            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-gold)]" />
+            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-burgundy)]" />
           </div>
           <p className="text-[var(--text-secondary)] text-sm">Total Users</p>
           <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
@@ -87,7 +87,7 @@ const AdminView = () => {
 
         <Link
           to="/admin/pending"
-          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-gold)]/10 hover:border-[var(--color-gold)]/30 transition-colors block"
+          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 transition-colors block"
         >
           <div className="absolute right-0 top-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-all" />
           <div className="flex justify-between items-start mb-4">
@@ -100,7 +100,7 @@ const AdminView = () => {
               </span>
             )}
             {stats.pendingProducts === 0 && (
-              <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-gold)]" />
+              <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-burgundy)]" />
             )}
           </div>
           <p className="text-[var(--text-secondary)] text-sm">
@@ -113,14 +113,14 @@ const AdminView = () => {
 
         <Link
           to="/admin/orders"
-          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-gold)]/10 hover:border-[var(--color-gold)]/30 transition-colors block"
+          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 transition-colors block"
         >
           <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--color-burgundy)]/5 rounded-full blur-3xl group-hover:bg-[var(--color-burgundy)]/10 transition-all" />
           <div className="flex justify-between items-start mb-4">
             <div className="p-2 bg-[var(--color-burgundy)]/10 rounded-lg">
               <Truck className="text-[var(--color-burgundy)] w-5 h-5" />
             </div>
-            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-gold)]" />
+            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-burgundy)]" />
           </div>
           <p className="text-[var(--text-secondary)] text-sm">Total Orders</p>
           <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
@@ -130,14 +130,14 @@ const AdminView = () => {
 
         <Link
           to="/admin/carts"
-          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-gold)]/10 hover:border-[var(--color-gold)]/30 transition-colors block"
+          className="card-standard p-6 relative overflow-hidden group bg-[var(--bg-card)] border-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 transition-colors block"
         >
-          <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--color-gold)]/5 rounded-full blur-3xl group-hover:bg-[var(--color-gold)]/10 transition-all" />
+          <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--color-burgundy)]/5 rounded-full blur-3xl group-hover:bg-[var(--color-burgundy)]/10 transition-all" />
           <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-[var(--color-gold)]/10 rounded-lg">
+            <div className="p-2 bg-[var(--color-burgundy)]/10 rounded-lg">
               <ShoppingCart className="text-[var(--color-burgundy)] w-5 h-5" />
             </div>
-            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-gold)]" />
+            <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--color-burgundy)]" />
           </div>
           <p className="text-[var(--text-secondary)] text-sm">Active Carts</p>
           <p className="text-3xl font-display font-bold mt-1 text-[var(--text-main)]">
