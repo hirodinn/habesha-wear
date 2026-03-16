@@ -39,8 +39,21 @@ const ProductCard = ({
 
   const isCompact = variant === "compact";
 
+  const handleViewDetails = () => {
+    navigate(`/products/${product._id}`);
+  };
+
   return (
     <div
+      onClick={handleViewDetails}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleViewDetails();
+        }
+      }}
       className={`group overflow-hidden flex flex-col h-full transition-all duration-300 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] hover:shadow-xl hover:shadow-[var(--color-burgundy)]/5 hover:border-[var(--color-burgundy)]/20 ${
         isCompact ? "hover:-translate-y-1" : "hover:-translate-y-0.5"
       }`}
@@ -65,7 +78,10 @@ const ProductCard = ({
         </div>
         {(!user || user.role !== "vendor") && (
           <button
-            onClick={handleAdd}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAdd();
+            }}
             disabled={addingToCart === product._id || product.stock <= 0}
             className="absolute bottom-3 right-3 bg-[var(--color-burgundy)] text-white p-3 rounded-xl shadow-lg translate-y-14 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[var(--color-burgundy-light)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -103,7 +119,10 @@ const ProductCard = ({
                 <button
                   key={value}
                   type="button"
-                  onClick={() => onRate(product._id, value)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRate(product._id, value);
+                  }}
                   disabled={ratingLoadingId === product._id}
                   className="p-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--color-burgundy)]/50 focus:ring-offset-1"
                   title={`Rate ${value} star${value > 1 ? "s" : ""}`}
@@ -152,7 +171,6 @@ const ProductCard = ({
 
 const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadingId, user, size }) => {
   const navigate = useNavigate();
-  const ratingAverage = Number(product.ratingAverage || 0);
   const isLarge = size === "large";
 
   const handleAdd = () => {
@@ -163,8 +181,21 @@ const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadi
     onAddToCart(product);
   };
 
+  const handleViewDetails = () => {
+    navigate(`/products/${product._id}`);
+  };
+
   return (
     <div
+      onClick={handleViewDetails}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleViewDetails();
+        }
+      }}
       className={`group relative overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 ${
         isLarge ? "min-h-[380px] md:min-h-[420px]" : "min-h-[180px] md:min-h-[200px]"
       }`}
@@ -195,7 +226,10 @@ const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadi
           <span className="font-bold text-white text-lg">{product.price} Birr</span>
           {(!user || user.role !== "vendor") && (
             <button
-              onClick={handleAdd}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAdd();
+              }}
               disabled={addingToCart === product._id || product.stock <= 0}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[var(--color-burgundy)] font-semibold text-sm hover:bg-white/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >

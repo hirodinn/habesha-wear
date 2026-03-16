@@ -203,15 +203,12 @@ router.put("/:id/rating", async (req, res) => {
         .json({ success: false, message: "Product Not Found" });
     }
 
-    const existingRatingIndex = product.ratings.findIndex(
-      (r) => r.userId.toString() === decoded._id
-    );
+    if (!Array.isArray(product.ratings)) product.ratings = [];
 
-    if (existingRatingIndex >= 0) {
-      product.ratings[existingRatingIndex].value = req.body.value;
-    } else {
-      product.ratings.push({ userId: decoded._id, value: req.body.value });
-    }
+    product.ratings = product.ratings.filter(
+      (r) => r && r.userId && r.userId.toString() !== decoded._id
+    );
+    product.ratings.push({ userId: decoded._id, value: req.body.value });
 
     const total = product.ratings.reduce((sum, r) => sum + r.value, 0);
     product.ratingCount = product.ratings.length;

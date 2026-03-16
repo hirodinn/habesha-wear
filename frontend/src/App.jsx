@@ -7,6 +7,7 @@ import Dashboard from "./pages/dashboard";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Cart from "./pages/shop/Cart";
+import ProductDetail from "./pages/shop/ProductDetail";
 import About from "./pages/About";
 import { ArrowRight } from "lucide-react";
 import ProductGrid from "./components/shop/ProductGrid";
@@ -40,6 +41,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/about" element={<About />} />
 
         {/* Admin Management Routes */}

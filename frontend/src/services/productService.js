@@ -22,7 +22,11 @@ const productService = {
     return response.data;
   },
   rateProduct: async (id, value) => {
-    const response = await axios.put(`${API_URL}/${id}/rating`, { value });
+    const response = await axios.put(
+      `${API_URL}/${id}/rating`,
+      { value },
+      { withCredentials: true }
+    );
     return response.data;
   },
 };
