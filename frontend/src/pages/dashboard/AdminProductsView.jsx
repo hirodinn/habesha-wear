@@ -120,6 +120,9 @@ const AdminProductsView = () => {
                 <th className="px-6 py-4 font-bold border-b border-(--border-color)">
                   Stock
                 </th>
+                <th className="px-6 py-4 font-bold border-b border-(--border-color)">
+                  Rating
+                </th>
                 <th className="px-6 py-4 font-bold border-b border-(--border-color) text-right">
                   Actions
                 </th>
@@ -186,6 +189,18 @@ const AdminProductsView = () => {
                         </span>
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-amber-500">
+                          {product.ratingCount > 0
+                            ? Number(product.ratingAverage || 0).toFixed(1)
+                            : "-"}
+                        </span>
+                        <span className="text-[10px] text-(--text-secondary) font-medium">
+                          ({product.ratingCount || 0})
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-2">
                         <button
@@ -223,7 +238,7 @@ const AdminProductsView = () => {
                   {expandedProductId === product._id && (
                     <tr className="bg-sky-500/2 animate-fade-in">
                       <td
-                        colSpan="5"
+                        colSpan="6"
                         className="px-6 py-8 border-b border-(--border-color)"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -289,7 +304,7 @@ const AdminProductsView = () => {
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="px-6 py-20 text-center">
+                  <td colSpan="6" className="px-6 py-20 text-center">
                     <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-500/20" />
                     <p className="text-(--text-secondary)">
                       {searchTerm

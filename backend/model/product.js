@@ -1,6 +1,18 @@
 import mongoose from "mongoose";
 import Joi from "joi";
 
+const ratingSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    value: { type: Number, required: true, min: 1, max: 5 },
+  },
+  { _id: false }
+);
+
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, minlength: 3 },
   ownedBy: {
@@ -13,6 +25,9 @@ const productSchema = new mongoose.Schema({
   category: { type: String, required: true },
   stock: { type: Number, required: true, min: 0 },
   images: { type: [String], default: [] },
+  ratings: { type: [ratingSchema], default: [] },
+  ratingAverage: { type: Number, default: 0, min: 0, max: 5 },
+  ratingCount: { type: Number, default: 0, min: 0 },
 });
 
 export const Product = mongoose.model("Product", productSchema);
@@ -35,4 +50,11 @@ export function validateProductUpdate(product) {
     stock: Joi.number().min(0).required(),
   });
   return schema.validate(product || {});
+}
+
+export function validateProductRating(payload) {
+  const schema = Joi.object({
+    value: Joi.number().integer().min(1).max(5).required(),
+  });
+  return schema.validate(payload || {});
 }

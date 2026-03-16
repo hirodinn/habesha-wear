@@ -3,6 +3,7 @@ import {
   Product,
   validateNewProduct,
   validateProductUpdate,
+  validateProductRating,
 } from "../model/product.js";
 import jwt from "jsonwebtoken";
 import { validateId } from "../utils/validateId.js";
@@ -117,6 +118,69 @@ router.put("/:id", async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put("/:id/rating", async (req, res) => {
+  res.set({
+    "Cache-Control": "no-store",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
+
+  const token = req.cookies.token;
+  if (!token)
+    return res.status(401).json({ success: false, message: "Access denied" });
+
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  if (decoded.role !== "customer") {
+    return res.status(403).json({
+      success: false,
+      message: "Only customers can rate products",
+    });
+  }
+
+  const { error: idError } = validateId(req.params.id);
+  if (idError)
+    return res
+      .status(400)
+      .json({ success: false, message: idError.details[0].message });
+
+  const { error: ratingError } = validateProductRating(req.body);
+  if (ratingError)
+    return res
+      .status(400)
+      .json({ success: false, message: ratingError.details[0].message });
+
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product Not Found" });
+    }
+
+    const existingRatingIndex = product.ratings.findIndex(
+      (r) => r.userId.toString() === decoded._id
+    );
+
+    if (existingRatingIndex >= 0) {
+      product.ratings[existingRatingIndex].value = req.body.value;
+    } else {
+      product.ratings.push({ userId: decoded._id, value: req.body.value });
+    }
+
+    const total = product.ratings.reduce((sum, r) => sum + r.value, 0);
+    product.ratingCount = product.ratings.length;
+    product.ratingAverage =
+      product.ratingCount > 0
+        ? Math.round((total / product.ratingCount) * 10) / 10
+        : 0;
+
+    await product.save();
+    return res.send(product);
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 

@@ -12,6 +12,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addItemToCart } from "../../redux/cartSlice";
+import productService from "../../services/productService";
 
 const ProductGrid = ({ isPublic = false }) => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const ProductGrid = ({ isPublic = false }) => {
   const [category, setCategory] = useState("all");
   const [loading, setLoading] = useState(false);
   const [addingToCart, setAddingToCart] = useState(null);
+  const [ratingLoadingId, setRatingLoadingId] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -56,6 +58,27 @@ const ProductGrid = ({ isPublic = false }) => {
       console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRateProduct = async (productId, value) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (user.role !== "customer") return;
+
+    setRatingLoadingId(productId);
+    try {
+      const updatedProduct = await productService.rateProduct(productId, value);
+      setProducts((prev) =>
+        prev.map((p) => (p._id === productId ? updatedProduct : p))
+      );
+    } catch (error) {
+      console.error("Error rating product:", error);
+    } finally {
+      setRatingLoadingId(null);
     }
   };
 
@@ -154,14 +177,56 @@ const ProductGrid = ({ isPublic = false }) => {
             </div>
 
             <div className="p-5 flex flex-col flex-1 bg-(--bg-card)">
+              {(() => {
+                const ratingAverage = Number(product.ratingAverage || 0);
+                const ratingCount = Number(product.ratingCount || 0);
+
+                return (
+                  <>
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-display font-bold text-lg leading-tight truncate pr-2 text-(--text-main)">
                   {product.name}
                 </h3>
                 <div className="flex items-center gap-1 text-yellow-500 text-xs">
                   <Star size={12} fill="currentColor" />
-                  <span>4.8</span>
+                  <span>{ratingCount > 0 ? ratingAverage.toFixed(1) : "New"}</span>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => handleRateProduct(product._id, value)}
+                      disabled={ratingLoadingId === product._id || user?.role !== "customer"}
+                      className="disabled:opacity-50 disabled:cursor-not-allowed"
+                      title={
+                        user?.role === "customer"
+                          ? `Rate ${value} star${value > 1 ? "s" : ""}`
+                          : "Only customers can rate"
+                      }
+                    >
+                      <Star
+                        size={13}
+                        className={
+                          value <= Math.round(ratingAverage)
+                            ? "text-yellow-500"
+                            : "text-gray-300 dark:text-gray-600"
+                        }
+                        fill={
+                          value <= Math.round(ratingAverage)
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-(--text-secondary)">
+                  ({ratingCount})
+                </span>
               </div>
 
               <p className="text-(--text-secondary) text-sm line-clamp-2 mb-4 flex-1">
@@ -182,6 +247,9 @@ const ProductGrid = ({ isPublic = false }) => {
                   {product.stock > 0 ? `${product.stock} In Stock` : "Sold Out"}
                 </span>
               </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         ))}
