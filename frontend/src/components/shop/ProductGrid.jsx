@@ -79,31 +79,38 @@ const ProductCard = ({
       </div>
 
       <div className={`flex flex-col flex-1 bg-[var(--bg-card)] ${isCompact ? "p-3" : "p-4"}`}>
-        <div className="flex justify-between items-start gap-2 mb-1">
+        <div className="flex justify-between items-start gap-2 mb-2">
           <h3 className="font-display font-bold leading-tight truncate text-[var(--text-main)] text-lg">
             {product.name}
           </h3>
-          <div className="flex items-center gap-1 text-[var(--color-burgundy)] shrink-0">
-            <Star size={12} fill="currentColor" />
+          <div className="flex items-center gap-1.5 text-[var(--color-burgundy)] shrink-0">
+            <Star size={14} fill="currentColor" />
             <span className="text-xs font-semibold">
-              {ratingCount > 0 ? ratingAverage.toFixed(1) : "New"}
+              {ratingCount > 0 ? ratingAverage.toFixed(1) : "—"}
             </span>
+            {ratingCount > 0 && (
+              <span className="text-[10px] text-[var(--text-secondary)]">({ratingCount})</span>
+            )}
           </div>
         </div>
         {user?.role === "customer" && (
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center gap-0.5">
+          <div className="mb-3">
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">
+              Rate this product
+            </p>
+            <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => onRate(product._id, value)}
                   disabled={ratingLoadingId === product._id}
-                  className="disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--color-burgundy)]/50 focus:ring-offset-1"
                   title={`Rate ${value} star${value > 1 ? "s" : ""}`}
+                  aria-label={`Rate ${value} star${value > 1 ? "s" : ""}`}
                 >
                   <Star
-                    size={11}
+                    size={18}
                     className={
                       value <= Math.round(ratingAverage)
                         ? "text-[var(--color-burgundy)]"
@@ -113,8 +120,10 @@ const ProductCard = ({
                   />
                 </button>
               ))}
+              {ratingLoadingId === product._id && (
+                <Loader2 size={14} className="ml-1 text-[var(--color-burgundy)] animate-spin" />
+              )}
             </div>
-            <span className="text-[10px] text-[var(--text-secondary)]">({ratingCount})</span>
           </div>
         )}
         {!isCompact && (
@@ -233,6 +242,7 @@ const ProductGrid = () => {
 
   const loadPaginated = async (page = 1) => {
     setLoadingPaginated(true);
+    setPaginated((prev) => ({ ...prev, products: [] }));
     try {
       const data = await productService.fetchProductsPaginated(page, PRODUCTS_PER_PAGE, true);
       setPaginated({
@@ -384,10 +394,11 @@ const ProductGrid = () => {
                 <button
                   onClick={() => goToPage(paginated.page - 1)}
                   disabled={paginated.page <= 1}
-                  className="p-3 rounded-xl border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-burgundy)] text-white font-medium text-sm hover:bg-[var(--color-burgundy-light)] disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-[var(--color-burgundy)]/50 transition-all"
                   aria-label="Previous page"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
+                  Previous
                 </button>
                 <span className="text-sm font-medium text-[var(--text-secondary)]">
                   Page {paginated.page} of {paginated.totalPages}
@@ -395,10 +406,11 @@ const ProductGrid = () => {
                 <button
                   onClick={() => goToPage(paginated.page + 1)}
                   disabled={paginated.page >= paginated.totalPages}
-                  className="p-3 rounded-xl border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--color-burgundy)]/10 hover:border-[var(--color-burgundy)]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-burgundy)] text-white font-medium text-sm hover:bg-[var(--color-burgundy-light)] disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-[var(--color-burgundy)]/50 transition-all"
                   aria-label="Next page"
                 >
-                  <ChevronRight size={20} />
+                  Next
+                  <ChevronRight size={18} />
                 </button>
               </div>
             )}

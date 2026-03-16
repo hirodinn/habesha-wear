@@ -186,7 +186,7 @@ const VendorView = () => {
     <div className="space-y-8 animate-fade-in relative">
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-(--border-color) pb-6">
         <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-sky-400 to-blue-600 mb-1">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-[var(--color-burgundy)] to-[var(--color-burgundy-dark)] mb-1">
             Vendor Portal
           </h1>
           <p className="text-(--text-secondary) text-sm">
@@ -223,7 +223,7 @@ const VendorView = () => {
       {showForm && (
         <div className="card-standard p-6 md:p-8 animate-fade-in shadow-xl">
           <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-(--text-main)">
-            <Package className="text-sky-500" />
+            <Package className="text-[var(--color-burgundy)]" />
             Product Details
           </h2>
 
@@ -300,7 +300,7 @@ const VendorView = () => {
                 Product Images (Required, max 5)
               </label>
 
-              <div className="border-2 border-dashed border-(--border-color) rounded-xl p-6 text-center hover:border-sky-500/50 transition-colors cursor-pointer">
+              <div className="border-2 border-dashed border-(--border-color) rounded-xl p-6 text-center hover:border-[var(--color-burgundy)]/50 transition-colors cursor-pointer">
                 <input
                   type="file"
                   id="imageUpload"
@@ -313,8 +313,8 @@ const VendorView = () => {
                   htmlFor="imageUpload"
                   className="cursor-pointer flex flex-col items-center gap-2"
                 >
-                  <div className="p-3 bg-sky-500/10 rounded-full">
-                    <Upload className="w-6 h-6 text-sky-500" />
+                  <div className="p-3 bg-[var(--color-burgundy)]/10 rounded-full">
+                    <Upload className="w-6 h-6 text-[var(--color-burgundy)]" />
                   </div>
                   <div>
                     <p className="text-(--text-main) font-medium">
@@ -506,7 +506,7 @@ const VendorView = () => {
                     expandedProductId === product._id ? null : product._id
                   )
                 }
-                className="p-2 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-lg transition-all cursor-pointer flex items-center gap-1 group/btn"
+                className="p-2 text-(--text-secondary) hover:text-[var(--color-burgundy)] hover:bg-[var(--color-burgundy)]/5 rounded-lg transition-all cursor-pointer flex items-center gap-1 group/btn"
               >
                 <span className="text-xs font-bold opacity-0 group-hover/btn:opacity-100 transition-opacity">
                   {expandedProductId === product._id

@@ -87,8 +87,8 @@ const AdminPendingView = () => {
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-amber-100 dark:bg-amber-900/20 rounded-2xl border border-amber-200 dark:border-amber-500/30">
-            <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          <div className="p-3 bg-[var(--color-burgundy)]/10 rounded-2xl border border-[var(--color-burgundy)]/20">
+            <Clock className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
             <h1 className="text-4xl font-bold text-(--text-main)">
@@ -101,11 +101,11 @@ const AdminPendingView = () => {
         </div>
 
         <div className="relative group min-w-75">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-sky-500 transition-colors w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[var(--color-burgundy)] transition-colors w-5 h-5" />
           <input
             type="text"
             placeholder="Search pending products..."
-            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main) placeholder-gray-400"
+            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main) placeholder-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -153,8 +153,8 @@ const AdminPendingView = () => {
                   <tr
                     className={`group transition-colors ${
                       expandedProductId === product._id
-                        ? "bg-sky-500/10"
-                        : "hover:bg-sky-500/5"
+                        ? "bg-[var(--color-burgundy)]/10"
+                        : "hover:bg-[var(--color-burgundy)]/5"
                     }`}
                   >
                     <td className="px-6 py-4">
@@ -185,7 +185,7 @@ const AdminPendingView = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-sm text-sky-500">
+                      <span className="font-bold text-sm text-[var(--color-burgundy)]">
                         {product.price} Birr
                       </span>
                     </td>
@@ -209,7 +209,7 @@ const AdminPendingView = () => {
                                 : product._id
                             )
                           }
-                          className="p-2 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-lg transition-all cursor-pointer"
+                          className="p-2 text-(--text-secondary) hover:text-[var(--color-burgundy)] hover:bg-[var(--color-burgundy)]/5 rounded-lg transition-all cursor-pointer"
                           title={
                             expandedProductId === product._id
                               ? "Collapse Details"
@@ -244,7 +244,7 @@ const AdminPendingView = () => {
                     </td>
                   </tr>
                   {expandedProductId === product._id && (
-                    <tr className="bg-sky-500/2 animate-fade-in">
+                    <tr className="bg-[var(--color-burgundy)]/5 animate-fade-in">
                       <td
                         colSpan="5"
                         className="px-6 py-8 border-b border-(--border-color)"

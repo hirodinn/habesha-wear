@@ -113,8 +113,8 @@ const AdminAdminsView = () => {
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-indigo-100 dark:bg-indigo-900/20 rounded-2xl border border-indigo-200 dark:border-indigo-500/30">
-            <Shield className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+          <div className="p-3 bg-[var(--color-burgundy)]/10 rounded-2xl border border-[var(--color-burgundy)]/20">
+            <Shield className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
             <h1 className="text-4xl font-bold text-(--text-main)">
@@ -128,11 +128,11 @@ const AdminAdminsView = () => {
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="relative group min-w-[300px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-sky-500 transition-colors w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[var(--color-burgundy)] transition-colors w-5 h-5" />
             <input
               type="text"
               placeholder="Search admins..."
-              className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main) placeholder-gray-400"
+              className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main) placeholder-gray-400"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -141,7 +141,7 @@ const AdminAdminsView = () => {
           {currentUser?.role === "owner" && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-sky-500/20 cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 bg-[var(--color-burgundy)] hover:bg-[var(--color-burgundy-light)] text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-lg cursor-pointer"
             >
               <Plus size={18} /> Add Admin
             </button>
@@ -193,12 +193,12 @@ const AdminAdminsView = () => {
               {filteredAdmins.map((admin) => (
                 <tr
                   key={admin._id}
-                  className="group hover:bg-sky-500/5 transition-colors"
+                  className="group hover:bg-[var(--color-burgundy)]/5 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-(--bg-main) border border-(--border-color)">
-                        <Shield size={16} className="text-sky-500" />
+                        <Shield size={16} className="text-[var(--color-burgundy)]" />
                       </div>
                       <span className="font-bold text-sm text-(--text-main)">
                         {admin.name}
@@ -257,8 +257,8 @@ const AdminAdminsView = () => {
           <div className="relative w-full max-w-md bg-(--bg-card) border border-(--border-color) rounded-3xl shadow-2xl animate-scale-up overflow-hidden">
             <div className="p-6 border-b border-(--border-color) flex items-center justify-between bg-(--bg-main)">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-sky-500/10 rounded-xl">
-                  <UserPlus className="w-6 h-6 text-sky-500" />
+                <div className="p-2 bg-[var(--color-burgundy)]/10 rounded-xl">
+                  <UserPlus className="w-6 h-6 text-[var(--color-burgundy)]" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-(--text-main)">
@@ -287,7 +287,7 @@ const AdminAdminsView = () => {
                   name="name"
                   required
                   placeholder="John Doe"
-                  className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main)"
+                  className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main)"
                   value={formData.name}
                   onChange={handleInputChange}
                 />
@@ -302,7 +302,7 @@ const AdminAdminsView = () => {
                   name="email"
                   required
                   placeholder="admin@habeshawear.com"
-                  className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main)"
+                  className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main)"
                   value={formData.email}
                   onChange={handleInputChange}
                 />
@@ -319,14 +319,14 @@ const AdminAdminsView = () => {
                     required
                     minLength={8}
                     placeholder="••••••••"
-                    className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main)"
+                    className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main)"
                     value={formData.password}
                     onChange={handleInputChange}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-secondary) hover:text-sky-500 transition-colors p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-secondary) hover:text-[var(--color-burgundy)] transition-colors p-1"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -344,7 +344,7 @@ const AdminAdminsView = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="flex-1 px-6 py-3 bg-[var(--color-burgundy)] hover:bg-[var(--color-burgundy-light)] text-white font-bold rounded-xl transition-all shadow-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

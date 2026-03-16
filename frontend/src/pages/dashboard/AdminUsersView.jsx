@@ -70,8 +70,8 @@ const AdminUsersView = () => {
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-500/30">
-            <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          <div className="p-3 bg-[var(--color-burgundy)]/10 rounded-2xl border border-[var(--color-burgundy)]/20">
+            <Users className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
             <h1 className="text-4xl font-bold text-(--text-main)">
@@ -84,11 +84,11 @@ const AdminUsersView = () => {
         </div>
 
         <div className="relative group min-w-[300px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-sky-500 transition-colors w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[var(--color-burgundy)] transition-colors w-5 h-5" />
           <input
             type="text"
             placeholder="Search by email or name..."
-            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main) placeholder-gray-400"
+            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main) placeholder-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -131,13 +131,13 @@ const AdminUsersView = () => {
               {filteredUsers.map((user) => (
                 <tr
                   key={user._id}
-                  className="group hover:bg-sky-500/5 transition-colors"
+                  className="group hover:bg-[var(--color-burgundy)]/5 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-(--bg-main) border border-(--border-color)">
                         {user.role === "admin" || user.role === "owner" ? (
-                          <Shield size={16} className="text-sky-500" />
+                          <Shield size={16} className="text-[var(--color-burgundy)]" />
                         ) : (
                           <User size={16} className="text-gray-400" />
                         )}
@@ -157,9 +157,9 @@ const AdminUsersView = () => {
                     <span
                       className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
                         user.role === "owner"
-                          ? "bg-purple-100 text-purple-700 border-purple-200"
+                          ? "bg-[var(--color-burgundy)]/20 text-[var(--color-burgundy)] border-[var(--color-burgundy)]/30"
                           : user.role === "admin"
-                          ? "bg-sky-100 text-sky-700 border-sky-200"
+                          ? "bg-[var(--color-burgundy)]/15 text-[var(--color-burgundy)] border-[var(--color-burgundy)]/30"
                           : user.role === "vendor"
                           ? "bg-amber-100 text-amber-700 border-amber-200"
                           : "bg-gray-100 text-gray-700 border-gray-200"

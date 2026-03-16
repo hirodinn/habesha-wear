@@ -60,7 +60,7 @@ const AdminOrdersView = () => {
       case "delivered":
         return "bg-green-100 text-green-700 border-green-200";
       case "shipped":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "bg-[var(--color-burgundy)]/20 text-[var(--color-burgundy)]";
       case "cancelled":
         return "bg-red-100 text-red-700 border-red-200";
       case "pending":
@@ -74,8 +74,8 @@ const AdminOrdersView = () => {
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-indigo-100 dark:bg-indigo-900/20 rounded-2xl border border-indigo-200 dark:border-indigo-500/30">
-            <Package className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+          <div className="p-3 bg-[var(--color-burgundy)]/10 rounded-2xl border border-[var(--color-burgundy)]/20">
+            <Package className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
             <h1 className="text-4xl font-bold text-(--text-main)">
@@ -88,11 +88,11 @@ const AdminOrdersView = () => {
         </div>
 
         <div className="relative group min-w-[300px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-sky-500 transition-colors w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[var(--color-burgundy)] transition-colors w-5 h-5" />
           <input
             type="text"
             placeholder="Search by order ID or user ID..."
-            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main) placeholder-gray-400"
+            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main) placeholder-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -138,7 +138,7 @@ const AdminOrdersView = () => {
               {filteredOrders.map((order) => (
                 <tr
                   key={order._id}
-                  className="group hover:bg-sky-500/5 transition-colors"
+                  className="group hover:bg-[var(--color-burgundy)]/5 transition-colors"
                 >
                   <td className="px-6 py-4 font-mono text-xs text-(--text-secondary)">
                     {order._id}
@@ -167,7 +167,7 @@ const AdminOrdersView = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <select
-                        className="bg-(--input-bg) border border-(--border-color) rounded-lg text-xs p-1 focus:outline-none focus:border-sky-500 cursor-pointer text-(--text-main)"
+                        className="bg-(--input-bg) border border-(--border-color) rounded-lg text-xs p-1 focus:outline-none focus:border-[var(--color-burgundy)] cursor-pointer text-(--text-main)"
                         value={order.status || "pending"}
                         onChange={(e) =>
                           handleUpdateStatus(order._id, e.target.value)

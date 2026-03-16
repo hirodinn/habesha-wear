@@ -40,7 +40,7 @@ const CustomerView = () => {
       case "pending":
         return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
       case "shipped":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+        return "bg-[var(--color-burgundy)]/20 text-[var(--color-burgundy)]";
       case "delivered":
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
       case "cancelled":
@@ -111,8 +111,8 @@ const CustomerView = () => {
               Start exploring our collection to place your first order!
             </p>
             <Link
-              to="/shop"
-              className="inline-flex items-center px-6 py-3 rounded-2xl bg-sky-500 text-white font-bold hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+              to="/"
+              className="inline-flex items-center px-6 py-3 rounded-2xl bg-[var(--color-burgundy)] text-white font-bold hover:bg-[var(--color-burgundy-light)] transition-all shadow-lg active:scale-95"
             >
               Shop Now
             </Link>
@@ -211,7 +211,7 @@ const CustomerView = () => {
                         </div>
                       ))}
                       {order.items?.length > 2 && (
-                        <p className="text-[10px] font-bold text-sky-500/70 text-center pt-1">
+                        <p className="text-[10px] font-bold text-[var(--color-burgundy)]/80 text-center pt-1">
                           + {order.items.length - 2} more items
                         </p>
                       )}

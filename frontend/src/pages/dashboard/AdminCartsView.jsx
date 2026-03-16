@@ -36,8 +36,8 @@ const AdminCartsView = () => {
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-sky-100 dark:bg-sky-900/20 rounded-2xl border border-sky-200 dark:border-sky-500/30">
-            <ShoppingCart className="w-8 h-8 text-sky-600 dark:text-sky-400" />
+          <div className="p-3 bg-[var(--color-burgundy)]/10 rounded-2xl border border-[var(--color-burgundy)]/20">
+            <ShoppingCart className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
             <h1 className="text-4xl font-bold text-(--text-main)">
@@ -50,11 +50,11 @@ const AdminCartsView = () => {
         </div>
 
         <div className="relative group min-w-[300px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-sky-500 transition-colors w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[var(--color-burgundy)] transition-colors w-5 h-5" />
           <input
             type="text"
             placeholder="Search by cart or user ID..."
-            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all text-(--text-main) placeholder-gray-400"
+            className="w-full bg-(--input-bg) border border-(--border-color) rounded-xl pl-12 pr-4 py-2.5 focus:outline-none focus:border-[var(--color-burgundy)]/50 focus:ring-1 focus:ring-[var(--color-burgundy)]/50 transition-all text-(--text-main) placeholder-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -87,7 +87,7 @@ const AdminCartsView = () => {
               {filteredCarts.map((cart) => (
                 <tr
                   key={cart._id}
-                  className="group hover:bg-sky-500/5 transition-colors"
+                  className="group hover:bg-[var(--color-burgundy)]/5 transition-colors"
                 >
                   <td className="px-6 py-4 font-mono text-xs text-(--text-secondary)">
                     {cart._id}
@@ -97,7 +97,7 @@ const AdminCartsView = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <span className="bg-sky-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      <span className="bg-[var(--color-burgundy)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                         {cart.products?.length || 0}
                       </span>
                       <span className="text-xs text-(--text-secondary) font-medium italic">
@@ -106,12 +106,12 @@ const AdminCartsView = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-[10px] font-bold text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-full border border-sky-500/20 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-[var(--color-burgundy)] bg-[var(--color-burgundy)]/10 px-2.5 py-1 rounded-full border border-[var(--color-burgundy)]/20 uppercase tracking-wider">
                       Active
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-(--text-secondary) hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 rounded-lg transition-all cursor-pointer">
+                    <button className="p-2 text-(--text-secondary) hover:text-[var(--color-burgundy)] hover:bg-[var(--color-burgundy)]/5 rounded-lg transition-all cursor-pointer">
                       <ChevronRight size={18} />
                     </button>
                   </td>
@@ -120,7 +120,7 @@ const AdminCartsView = () => {
               {filteredCarts.length === 0 && (
                 <tr>
                   <td colSpan="5" className="px-6 py-20 text-center">
-                    <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-sky-500/20" />
+                    <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-[var(--color-burgundy)]/20" />
                     <p className="text-(--text-secondary)">
                       Perfect! No abandoned shopping carts currently.
                     </p>
