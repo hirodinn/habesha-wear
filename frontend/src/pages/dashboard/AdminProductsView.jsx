@@ -1,17 +1,17 @@
 import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   Tag,
   Search,
   Trash2,
   AlertCircle,
   ShoppingBag,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 
 const AdminProductsView = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
@@ -55,6 +55,37 @@ const AdminProductsView = () => {
     }
   };
 
+  const handleStatusChange = async (product, nextStatus) => {
+    if (!nextStatus || nextStatus === (product.status || "active")) return;
+
+    setLoading(true);
+    try {
+      await axios.put(`/api/products/${product._id}/status`, {
+        status: nextStatus,
+      });
+      setActionMessage({
+        type: "success",
+        text: `Status updated for "${product.name}" to ${nextStatus}.`,
+      });
+      fetchProducts();
+    } catch {
+      setActionMessage({ type: "error", text: "Failed to update status." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch ((status || "active").toLowerCase()) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/20";
+      case "archived":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-500/20";
+      default:
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-500/20";
+    }
+  };
+
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,6 +100,14 @@ const AdminProductsView = () => {
             <Tag className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-(--text-secondary) hover:text-[var(--color-burgundy)]"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </button>
             <h1 className="text-4xl font-bold text-(--text-main)">
               Product Management
             </h1>
@@ -123,6 +162,9 @@ const AdminProductsView = () => {
                 <th className="px-6 py-4 font-bold border-b border-(--border-color)">
                   Rating
                 </th>
+                <th className="px-6 py-4 font-bold border-b border-(--border-color)">
+                  Status
+                </th>
                 <th className="px-6 py-4 font-bold border-b border-(--border-color) text-right">
                   Actions
                 </th>
@@ -132,11 +174,17 @@ const AdminProductsView = () => {
               {filteredProducts.map((product) => (
                 <Fragment key={product._id}>
                   <tr
-                    className={`group transition-colors ${
+                    onDoubleClick={() =>
+                      setExpandedProductId((prev) =>
+                        prev === product._id ? null : product._id
+                      )
+                    }
+                    className={`group transition-colors cursor-pointer ${
                       expandedProductId === product._id
                         ? "bg-[var(--color-burgundy)]/10"
                         : "hover:bg-[var(--color-burgundy)]/5"
                     }`}
+                    title="Double-click to expand/collapse"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -201,34 +249,33 @@ const AdminProductsView = () => {
                         </span>
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${getStatusBadgeClass(
+                          product.status
+                        )}`}
+                      >
+                        {(product.status || "active")}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-2">
-                        <button
-                          onClick={() =>
-                            setExpandedProductId(
-                              expandedProductId === product._id
-                                ? null
-                                : product._id
-                            )
-                          }
-                          className="p-2 text-(--text-secondary) hover:text-[var(--color-burgundy)] hover:bg-[var(--color-burgundy)]/5 rounded-lg transition-all cursor-pointer"
-                          title={
-                            expandedProductId === product._id
-                              ? "Collapse Details"
-                              : "Expand Details"
-                          }
+                        <select
+                          value={product.status || "active"}
+                          onChange={(e) => handleStatusChange(product, e.target.value)}
+                          disabled={loading}
+                          className="px-2.5 py-2 rounded-lg text-xs font-semibold border border-(--border-color) bg-(--bg-main) text-(--text-main)"
+                          title="Change status"
                         >
-                          {expandedProductId === product._id ? (
-                            <ChevronUp size={18} />
-                          ) : (
-                            <ChevronDown size={18} />
-                          )}
-                        </button>
+                          <option value="pending">Pending</option>
+                          <option value="active">Active</option>
+                          <option value="archived">Archived</option>
+                        </select>
                         <button
                           onClick={() => handleDeleteProduct(product)}
                           disabled={loading}
                           className="p-2 text-(--text-secondary) hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all cursor-pointer"
-                          title="Delete Product"
+                          title="Hard Delete Product"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -237,10 +284,7 @@ const AdminProductsView = () => {
                   </tr>
                   {expandedProductId === product._id && (
                     <tr className="bg-[var(--color-burgundy)]/5 animate-fade-in">
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 border-b border-(--border-color)"
-                      >
+                      <td colSpan="7" className="px-6 py-8 border-b border-(--border-color)">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           <div className="space-y-4">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
@@ -282,16 +326,10 @@ const AdminProductsView = () => {
                                   onClick={() => window.open(img, "_blank")}
                                 />
                               ))}
-                              {(!product.images ||
-                                product.images.length === 0) && (
+                              {(!product.images || product.images.length === 0) && (
                                 <div className="col-span-3 py-8 flex flex-col items-center justify-center bg-(--bg-main) rounded-xl border border-dashed border-(--border-color) text-(--text-secondary)">
-                                  <ShoppingBag
-                                    size={24}
-                                    className="opacity-20 mb-2"
-                                  />
-                                  <span className="text-xs">
-                                    No images available
-                                  </span>
+                                  <ShoppingBag size={24} className="opacity-20 mb-2" />
+                                  <span className="text-xs">No images available</span>
                                 </div>
                               )}
                             </div>
@@ -304,7 +342,7 @@ const AdminProductsView = () => {
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-20 text-center">
+                  <td colSpan="7" className="px-6 py-20 text-center">
                     <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-500/20" />
                     <p className="text-(--text-secondary)">
                       {searchTerm
