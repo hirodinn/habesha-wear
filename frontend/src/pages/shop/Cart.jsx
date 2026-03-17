@@ -66,14 +66,26 @@ const Cart = () => {
 
   return (
     <div className="w-full space-y-8 py-4 animate-fade-in">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 hover:bg-[var(--bg-card)] rounded-full transition-colors text-[var(--text-secondary)]"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="font-display text-3xl font-bold text-[var(--text-main)]">Shopping Cart</h1>
+      <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 md:p-7 relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--color-burgundy)]/10 via-transparent to-[var(--color-burgundy)]/5" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-[var(--bg-main)] rounded-full transition-colors text-[var(--text-secondary)]"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)] mb-1">checkout prep</p>
+              <h1 className="font-display text-3xl font-bold text-[var(--text-main)]">Your Cart</h1>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-[var(--text-secondary)]">Items</p>
+            <p className="text-2xl font-bold text-[var(--text-main)]">{cartItems.length}</p>
+          </div>
+        </div>
       </div>
 
       {cartItems.length === 0 ? (
@@ -90,15 +102,15 @@ const Cart = () => {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Items List */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-8 space-y-4">
             {cartItems.map((item) => (
               <div
                 key={item.productId}
-                className="card-standard p-4 flex gap-6 items-center"
+                className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 flex flex-col sm:flex-row gap-5 sm:items-center hover:shadow-lg transition-all"
               >
-                <div className="w-24 h-24 bg-[var(--bg-main)] rounded-lg overflow-hidden flex-shrink-0 border border-[var(--border-color)]">
+                <div className="w-full sm:w-28 h-48 sm:h-28 bg-[var(--bg-main)] rounded-xl overflow-hidden flex-shrink-0 border border-[var(--border-color)]">
                   {item.images?.[0] ? (
                     <img
                       src={item.images[0]}
@@ -112,94 +124,94 @@ const Cart = () => {
                   )}
                 </div>
 
-                <div className="flex-1 space-y-1">
-                  <h3 className="font-bold text-lg truncate">
+                <div className="flex-1 space-y-2 min-w-0">
+                  <h3 className="font-display font-bold text-xl truncate">
                     {item.name || "Habesha Product"}
                   </h3>
-                  <p className="text-sm text-[var(--text-secondary)]">
+                  <p className="text-sm text-[var(--text-secondary)] uppercase tracking-wider">
                     {item.category || "Authentic Wear"}
                   </p>
                   <p className="font-bold text-[var(--color-burgundy)]">
-                    {item.price || 0} Birr
+                    {Number(item.price || 0).toLocaleString("en-US")} Birr
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 bg-[var(--bg-main)] rounded-xl p-1 border border-[var(--border-color)]">
+                <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-3 w-full sm:w-auto">
+                  <div className="flex items-center gap-3 bg-[var(--bg-main)] rounded-xl p-1 border border-[var(--border-color)]">
+                    <button
+                      onClick={() => {
+                        const newQuantity = Math.max(1, item.quantity - 1);
+                        if (newQuantity === item.quantity) return;
+
+                        const updatedItems = cartItems.map((cartItem) =>
+                          cartItem.productId === item.productId
+                            ? { ...cartItem, quantity: newQuantity }
+                            : cartItem
+                        );
+                        dispatch(setItems(updatedItems));
+
+                        dispatch(
+                          updateItemQuantity({
+                            productId: item.productId,
+                            quantity: newQuantity,
+                          })
+                        );
+                      }}
+                      className="p-1.5 hover:bg-[var(--bg-card)] rounded-lg transition-colors text-[var(--text-main)]"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="w-8 text-center font-bold">
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const newQuantity = item.quantity + 1;
+
+                        const updatedItems = cartItems.map((cartItem) =>
+                          cartItem.productId === item.productId
+                            ? { ...cartItem, quantity: newQuantity }
+                            : cartItem
+                        );
+                        dispatch(setItems(updatedItems));
+
+                        dispatch(
+                          updateItemQuantity({
+                            productId: item.productId,
+                            quantity: newQuantity,
+                          })
+                        );
+                      }}
+                      className="p-1.5 hover:bg-[var(--bg-card)] rounded-lg transition-colors text-[var(--text-main)]"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+
                   <button
                     onClick={() => {
-                      const newQuantity = Math.max(1, item.quantity - 1);
-                      if (newQuantity === item.quantity) return;
-
-                      // Immediate UI update
-                      const updatedItems = cartItems.map((cartItem) =>
-                        cartItem.productId === item.productId
-                          ? { ...cartItem, quantity: newQuantity }
-                          : cartItem
-                      );
-                      dispatch(setItems(updatedItems));
-
-                      // Sync with backend
-                      dispatch(
-                        updateItemQuantity({
-                          productId: item.productId,
-                          quantity: newQuantity,
-                        })
-                      );
+                      dispatch(removeItem(item.productId));
                     }}
-                    className="p-1.5 hover:bg-[var(--bg-card)] rounded-lg transition-colors text-[var(--text-main)]"
+                    className="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
                   >
-                    <Minus size={16} />
-                  </button>
-                  <span className="w-8 text-center font-bold">
-                    {item.quantity}
-                  </span>
-                  <button
-                    onClick={() => {
-                      const newQuantity = item.quantity + 1;
-
-                      // Immediate UI update
-                      const updatedItems = cartItems.map((cartItem) =>
-                        cartItem.productId === item.productId
-                          ? { ...cartItem, quantity: newQuantity }
-                          : cartItem
-                      );
-                      dispatch(setItems(updatedItems));
-
-                      // Sync with backend
-                      dispatch(
-                        updateItemQuantity({
-                          productId: item.productId,
-                          quantity: newQuantity,
-                        })
-                      );
-                    }}
-                    className="p-1.5 hover:bg-[var(--bg-card)] rounded-lg transition-colors text-[var(--text-main)]"
-                  >
-                    <Plus size={16} />
+                    <Trash2 size={20} />
                   </button>
                 </div>
-
-                <button
-                  onClick={() => dispatch(removeItem(item.productId))}
-                  className="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
-                >
-                  <Trash2 size={20} />
-                </button>
               </div>
             ))}
           </div>
 
           {/* Summary */}
-          <div className="space-y-6">
-            <div className="card-standard p-6 space-y-4 sticky top-24">
-              <h2 className="text-xl font-bold border-b border-[var(--border-color)] pb-4">
+          <div className="lg:col-span-4 space-y-6">
+            <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 space-y-5 sticky top-24">
+              <h2 className="text-xl font-display font-bold border-b border-[var(--border-color)] pb-4">
                 Order Summary
               </h2>
 
-              <div className="space-y-3">
+              <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-[var(--text-secondary)]">
                   <span>Subtotal ({cartItems.length} items)</span>
-                  <span>{calculateTotal()} Birr</span>
+                  <span>{Number(calculateTotal()).toLocaleString("en-US")} Birr</span>
                 </div>
                 <div className="flex justify-between text-[var(--text-secondary)]">
                   <span>Shipping</span>
@@ -208,7 +220,7 @@ const Cart = () => {
                 <div className="flex justify-between font-bold text-lg pt-3 border-t border-[var(--border-color)]">
                   <span>Total</span>
                   <span className="text-[var(--color-burgundy)]">
-                    {calculateTotal()} Birr
+                    {Number(calculateTotal()).toLocaleString("en-US")} Birr
                   </span>
                 </div>
               </div>

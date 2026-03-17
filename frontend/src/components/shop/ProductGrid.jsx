@@ -11,6 +11,7 @@ import {
   Search,
   X,
   SlidersHorizontal,
+  Crown,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -437,43 +438,156 @@ const ProductGrid = () => {
         </div>
       </section>
 
-      {/* Featured: modern bento layout */}
-      <section>
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-1 rounded-full bg-[var(--color-burgundy)]" />
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-main)]">
-              {searchQuery ? "Top matches" : "Top rated"}
+      {/* Top rated: static podium */}
+      <section className="relative pt-4 pb-8 md:pt-6 md:pb-10">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[var(--color-burgundy)]/5 blur-[100px] pointer-events-none" />
+        <div className="relative container mx-auto px-4">
+          <div className="mb-6 md:mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-burgundy)] text-white shadow-lg">
+              <Crown className="h-7 w-7" />
+            </div>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-[var(--text-main)]">
+              Most <span className="text-[var(--color-burgundy)]">Loved</span> Pieces
             </h2>
-          </div>
-          <p className="text-sm text-[var(--text-secondary)]">
+            <p className="mx-auto mt-3 max-w-md text-sm text-[var(--text-secondary)]">
             {searchQuery || categoryFilter !== "all"
               ? `Filtered${
                   searchQuery ? ` by “${searchQuery}”` : ""
                 }${categoryFilter !== "all" ? ` in ${categoryFilter}` : ""}`
-              : "Featured picks based on customer ratings"}
+              : "Our community's top-rated garments — handpicked excellence."}
           </p>
         </div>
         {loadingFeatured ? (
           <div className="flex justify-center py-24 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)]">
             <Loader2 className="w-10 h-10 text-[var(--color-burgundy)] animate-spin" />
           </div>
+        ) : featured.length >= 3 ? (
+          <div className="mx-auto flex max-w-5xl flex-col items-center gap-8 md:flex-row md:items-end md:justify-center md:gap-6">
+            {[
+              { product: featured[1], rank: 2, yOffset: 40, isCenter: false },
+              { product: featured[0], rank: 1, yOffset: 0, isCenter: true },
+              { product: featured[2], rank: 3, yOffset: 60, isCenter: false },
+            ].map(({ product, rank, yOffset, isCenter }) => {
+              const ratingAverage = Number(product.ratingAverage || 0);
+              const ratingCount = Number(product.ratingCount || 0);
+              return (
+                <div
+                  key={product._id}
+                  className="group relative w-full md:w-1/3"
+                  style={{ marginBottom: `${yOffset}px` }}
+                >
+                  {isCenter && (
+                    <div className="absolute -inset-2 rounded-3xl bg-[var(--color-burgundy)]/15 blur-xl pointer-events-none" />
+                  )}
+                  <div
+                    onClick={() => navigate(`/products/${product._id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(`/products/${product._id}`);
+                      }
+                    }}
+                    className={`relative overflow-hidden rounded-2xl border bg-[var(--bg-card)] transition-all duration-300 ${
+                        isCenter
+                          ? "border-[var(--color-burgundy)]/40 shadow-xl shadow-[var(--color-burgundy)]/10"
+                          : "border-[var(--border-color)] shadow-lg hover:border-[var(--color-burgundy)]/30"
+                    }`}
+                  >
+                    {isCenter && (
+                      <div className="absolute right-4 top-4 z-10">
+                        <Sparkles className="h-5 w-5 text-[var(--color-burgundy)]" />
+                      </div>
+                    )}
+                    <div className={`relative overflow-hidden ${isCenter ? "aspect-[3/4]" : "aspect-[3/3.5]"}`}>
+                      {product.images?.[0] ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center bg-[var(--bg-main)]">
+                          <ShoppingBag size={48} className="text-[var(--text-secondary)] opacity-30" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {(!user || user.role !== "vendor") && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!user) {
+                                navigate("/login");
+                                return;
+                              }
+                              handleAddToCart(product);
+                            }}
+                            disabled={addingToCart === product._id || product.stock <= 0}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-burgundy)] py-3 font-semibold text-sm text-white shadow-lg transition-transform hover:scale-[1.02] disabled:opacity-50"
+                          >
+                            {addingToCart === product._id ? (
+                              <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                              <>
+                                <ShoppingCart size={18} />
+                                Add to Cart
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="relative p-4">
+                      <div className="mb-2 flex items-center gap-2">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              size={14}
+                              className={
+                                s <= Math.round(ratingAverage)
+                                  ? "fill-[var(--color-burgundy)] text-[var(--color-burgundy)]"
+                                  : "fill-transparent text-[var(--border-color)]"
+                              }
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs font-semibold text-[var(--text-main)]">
+                          {ratingCount > 0 ? ratingAverage.toFixed(1) : "—"}
+                        </span>
+                        <span className="text-[10px] text-[var(--text-secondary)]">
+                          ({formatNumber(ratingCount)})
+                        </span>
+                      </div>
+                      <h3 className={`font-display font-bold text-[var(--text-main)] ${isCenter ? "text-xl" : "text-lg"}`}>
+                        {product.name}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-xs text-[var(--text-secondary)]">
+                        {product.description}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className={`font-bold text-[var(--color-burgundy)] ${isCenter ? "text-xl" : "text-lg"}`}>
+                          {formatNumber(product.price)} Birr
+                        </span>
+                        <span className="rounded-full border border-[var(--border-color)] px-2.5 py-0.5 text-[10px] text-[var(--text-secondary)]">
+                          {product.category || "Item"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : featured.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 grid-rows-[auto_auto] md:grid-rows-2">
-            <div className="md:col-span-2 md:row-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {featured.map((product) => (
               <FeaturedBlock
-                product={featured[0]}
-                onAddToCart={handleAddToCart}
-                onRate={handleRateProduct}
-                addingToCart={addingToCart}
-                ratingLoadingId={ratingLoadingId}
-                user={user}
-                size="large"
-              />
-            </div>
-            <div className="md:row-span-1">
-              <FeaturedBlock
-                product={featured[1]}
+                key={product._id}
+                product={product}
                 onAddToCart={handleAddToCart}
                 onRate={handleRateProduct}
                 addingToCart={addingToCart}
@@ -481,24 +595,14 @@ const ProductGrid = () => {
                 user={user}
                 size="small"
               />
-            </div>
-            <div className="md:row-span-1">
-              <FeaturedBlock
-                product={featured[2]}
-                onAddToCart={handleAddToCart}
-                onRate={handleRateProduct}
-                addingToCart={addingToCart}
-                ratingLoadingId={ratingLoadingId}
-                user={user}
-                size="small"
-              />
-            </div>
+            ))}
           </div>
         ) : (
           <p className="text-[var(--text-secondary)] py-12 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center">
             No top-rated products yet. Rate items to see them here.
           </p>
         )}
+        </div>
       </section>
 
       {/* All products: clean grid */}

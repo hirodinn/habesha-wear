@@ -81,8 +81,11 @@ const Checkout = () => {
         <h1 className="text-5xl font-display font-bold text-[var(--text-main)] tracking-tight">CHECKOUT</h1>
       </div>
 
-      <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        <div className="xl:col-span-7 space-y-8">
+      <form
+        onSubmit={handlePlaceOrder}
+        className="grid grid-cols-1 xl:grid-cols-12 gap-8 xl:h-[calc(100vh-180px)]"
+      >
+        <div className="xl:col-span-7 space-y-8 xl:overflow-y-auto xl:pr-3">
           <section className="space-y-4">
             <h2 className="text-2xl font-display font-semibold text-[var(--text-main)]">Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -193,9 +196,9 @@ const Checkout = () => {
           </button>
         </div>
 
-        <aside className="xl:col-span-5 border border-[var(--border-color)] rounded-2xl p-5 h-fit bg-[var(--bg-card)]">
+        <aside className="xl:col-span-5 border border-[var(--border-color)] rounded-2xl p-5 h-fit bg-[var(--bg-card)] xl:sticky xl:top-24">
           <h2 className="text-2xl font-display font-semibold mb-4">Shopping Bag ({cartItems.length})</h2>
-          <div className="space-y-4 max-h-[340px] overflow-auto pr-1">
+          <div className="space-y-4">
             {cartItems.map((item) => (
               <div key={item.productId} className="flex items-start gap-3 border-b border-[var(--border-color)] pb-3">
                 <div className="w-14 h-20 rounded-md border border-[var(--border-color)] bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] text-xs">
