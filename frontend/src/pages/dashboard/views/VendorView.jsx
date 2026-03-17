@@ -1,23 +1,33 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import productService from "../../../services/productService";
+import ProductImageCarousel from "../../../components/shop/ProductImageCarousel";
 import {
   Plus,
   Package,
   Clock,
   CheckCircle,
   XCircle,
-  ChevronRight,
   ChevronDown,
   ChevronUp,
   X,
   Loader2,
   Upload,
   Image as ImageIcon,
+  Store,
+  Inbox,
+  ExternalLink,
 } from "lucide-react";
 
+const TAB_LIVE = "live";
+const TAB_SUBMISSIONS = "submissions";
+
 const VendorView = () => {
+  const [activeTab, setActiveTab] = useState(TAB_LIVE);
   const [preProducts, setPreProducts] = useState([]);
+  const [vendorProducts, setVendorProducts] = useState([]);
+  const [loadingVendorProducts, setLoadingVendorProducts] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -32,9 +42,26 @@ const VendorView = () => {
   const [message, setMessage] = useState(null);
   const [expandedProductId, setExpandedProductId] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [submissionFilter, setSubmissionFilter] = useState("all"); // "all" | "pending" | "rejected"
 
   useEffect(() => {
     fetchPreProducts();
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoadingVendorProducts(true);
+      try {
+        const list = await productService.fetchVendorProducts();
+        setVendorProducts(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error("Error loading vendor products:", err);
+        setVendorProducts([]);
+      } finally {
+        setLoadingVendorProducts(false);
+      }
+    };
+    load();
   }, []);
 
   useEffect(() => {
@@ -210,11 +237,15 @@ const VendorView = () => {
         </div>
 
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            const next = !showForm;
+            setShowForm(next);
+            if (next) setActiveTab(TAB_SUBMISSIONS);
+          }}
           className="btn-primary flex items-center gap-2"
         >
           {showForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-          <span>{showForm ? "Cancel Submission" : "New Submisson"}</span>
+          <span>{showForm ? "Cancel" : "New submission"}</span>
         </button>
       </div>
 
@@ -232,6 +263,121 @@ const VendorView = () => {
             <XCircle size={20} />
           )}
           {message.text}
+        </div>
+      )}
+
+      {/* Tabs: Live | Submissions */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex rounded-xl bg-(--bg-card) border border-(--border-color) p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => setActiveTab(TAB_LIVE)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === TAB_LIVE
+                ? "bg-[var(--color-burgundy)] text-white shadow-sm"
+                : "text-(--text-secondary) hover:text-(--text-main) hover:bg-(--bg-main)"
+            }`}
+          >
+            <Store size={18} />
+            Live in shop
+            <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
+              activeTab === TAB_LIVE ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
+            }`}>
+              {vendorProducts.length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab(TAB_SUBMISSIONS)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === TAB_SUBMISSIONS
+                ? "bg-[var(--color-burgundy)] text-white shadow-sm"
+                : "text-(--text-secondary) hover:text-(--text-main) hover:bg-(--bg-main)"
+            }`}
+          >
+            <Inbox size={18} />
+            Submissions
+            <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
+              activeTab === TAB_SUBMISSIONS ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
+            }`}>
+              {preProducts.length}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Tab content: Live in shop */}
+      {activeTab === TAB_LIVE && (
+        <div className="animate-fade-in">
+          {loadingVendorProducts ? (
+            <div className="flex items-center justify-center py-20 rounded-2xl bg-(--bg-card) border border-(--border-color)">
+              <Loader2 className="w-10 h-10 text-[var(--color-burgundy)] animate-spin" />
+            </div>
+          ) : vendorProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {vendorProducts.map((product) => (
+                <div
+                  key={product._id}
+                  className="group rounded-2xl border border-(--border-color) bg-(--bg-card) overflow-hidden hover:shadow-xl hover:shadow-[var(--color-burgundy)]/5 hover:border-[var(--color-burgundy)]/20 transition-all duration-300"
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden bg-(--bg-main)">
+                    {product.images?.[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
+                        <Package size={48} className="opacity-30" />
+                      </div>
+                    )}
+                    <div className="absolute top-3 left-3">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-black/70 backdrop-blur-sm text-(--text-main) border border-(--border-color)">
+                        {product.category}
+                      </span>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-display font-bold text-(--text-main) text-lg truncate mb-1">{product.name}</h3>
+                    <p className="text-(--text-secondary) text-sm line-clamp-2 mb-3">{product.description}</p>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <span className="px-2 py-1 rounded-lg text-xs font-medium bg-(--bg-main) text-(--text-secondary) border border-(--border-color)">
+                        Stock: {product.stock}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-lg text-[var(--color-burgundy)]">
+                        {Number(product.price || 0).toLocaleString()} Birr
+                      </span>
+                      <Link
+                        to="/"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-burgundy)] hover:underline"
+                      >
+                        View in shop
+                        <ExternalLink size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
+              <Store className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
+              <p className="text-(--text-main) font-semibold mb-1">No products live yet</p>
+              <p className="text-(--text-secondary) text-sm mb-4">Submit items for approval to see them here.</p>
+              <button
+                type="button"
+                onClick={() => { setShowForm(true); setActiveTab(TAB_SUBMISSIONS); }}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New submission
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -405,151 +551,146 @@ const VendorView = () => {
         </div>
       )}
 
-      {/* Product List */}
-      <h3 className="text-lg font-semibold text-(--text-secondary) mt-8 mb-4">
-        Submission History
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {preProducts.map((product) => (
-          <div
-            key={product._id}
-            className={`card-standard p-5 relative group bg-(--bg-card) border-l-4 transition-all hover:translate-x-1 ${
-              getStatusColor(product.status).border
-            }`}
-          >
-            {/* Product Header & Images */}
-            <div className="relative mb-4">
-              {product.images && product.images.length > 0 ? (
-                <div className="relative h-48 bg-(--bg-main) rounded-xl overflow-hidden group/img">
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-110"
-                  />
-                  {product.images.length > 1 && (
-                    <div className="absolute bottom-2 right-2 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-full flex items-center gap-1">
-                      <ImageIcon size={12} />
-                      {product.images.length}
-                    </div>
-                  )}
-                  {/* Status Badge Over Image */}
-                  <div className="absolute top-3 right-3 z-10">
-                    <span
-                      className={`text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider border backdrop-blur-md ${
-                        getStatusColor(product.status).badge
-                      }`}
-                    >
-                      {getStatusIcon(product.status)}
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                          getStatusColor(product.status).dot
-                        }`}
-                      />
-                      {product.status}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex justify-between items-start">
-                  <Package className="w-10 h-10 text-(--text-secondary) opacity-20" />
-                  <span
-                    className={`text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider border ${
-                      getStatusColor(product.status).badge
+      {/* Tab content: Submissions (pre-products by status) */}
+      {activeTab === TAB_SUBMISSIONS && (
+        <div className="animate-fade-in">
+          {preProducts.length > 0 ? (
+            <>
+              {/* Filter: All | Pending | Rejected */}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <span className="text-sm font-medium text-(--text-secondary) mr-1">Show:</span>
+                {[
+                  { value: "all", label: "All", count: preProducts.length },
+                  { value: "pending", label: "Pending", count: preProducts.filter((p) => p.status === "pending").length },
+                  { value: "rejected", label: "Rejected", count: preProducts.filter((p) => p.status === "rejected").length },
+                ].map(({ value, label, count }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setSubmissionFilter(value)}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                      submissionFilter === value
+                        ? "bg-[var(--color-burgundy)] text-white shadow-sm"
+                        : "bg-(--bg-card) text-(--text-secondary) border border-(--border-color) hover:border-[var(--color-burgundy)]/30 hover:text-(--text-main)"
                     }`}
                   >
-                    {getStatusIcon(product.status)}
-                    {product.status}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <h3 className="font-bold text-lg text-(--text-main) mb-1 truncate">
-                {product.name}
-              </h3>
-              <p
-                className={`text-(--text-secondary) text-sm leading-relaxed ${
-                  expandedProductId !== product._id
-                    ? "line-clamp-2 min-h-[40px]"
-                    : ""
-                }`}
-              >
-                {product.description}
-              </p>
-            </div>
-
-            {expandedProductId === product._id && (
-              <div className="mb-6 space-y-4 animate-fade-in">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
-                  Full Image Gallery ({product.images?.length || 0})
-                </h4>
-                <div className="grid grid-cols-3 gap-3">
-                  {product.images?.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt={`${product.name} gallery ${idx + 1}`}
-                      className="w-full h-20 object-cover rounded-lg border border-(--border-color) hover:scale-105 transition-transform cursor-pointer"
-                      onClick={() => window.open(img, "_blank")}
-                    />
-                  ))}
-                </div>
+                    {label}
+                    <span className={`ml-1.5 ${submissionFilter === value ? "opacity-90" : "opacity-70"}`}>({count})</span>
+                  </button>
+                ))}
               </div>
-            )}
 
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color)">
-                {product.category}
-              </span>
-              <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color)">
-                Stock: {product.stock}
-              </span>
-              {expandedProductId === product._id && (
-                <span className="px-2 py-1 bg-(--bg-main) rounded-md text-xs text-(--text-secondary) border border-(--border-color) font-mono">
-                  ID: {product._id}
-                </span>
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-(--border-color) flex justify-between items-center">
-              <span className="text-(--text-main) font-bold text-lg">
-                {product.price} Birr
-              </span>
-              <button
-                onClick={() =>
-                  setExpandedProductId(
-                    expandedProductId === product._id ? null : product._id
-                  )
+              {(() => {
+                const filtered = submissionFilter === "all"
+                  ? preProducts
+                  : preProducts.filter((p) => p.status === submissionFilter);
+                if (filtered.length === 0) {
+                  return (
+                    <div className="py-12 text-center rounded-2xl border border-dashed border-(--border-color) bg-(--bg-card) text-(--text-secondary) text-sm">
+                      No {submissionFilter === "all" ? "submissions" : submissionFilter} yet.
+                    </div>
+                  );
                 }
-                className="p-2 text-(--text-secondary) hover:text-[var(--color-burgundy)] hover:bg-[var(--color-burgundy)]/5 rounded-lg transition-all cursor-pointer flex items-center gap-1 group/btn"
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {filtered.map((product) => (
+                      <div
+                        key={product._id}
+                        className={`group rounded-2xl border overflow-hidden bg-(--bg-card) transition-all duration-300 hover:shadow-xl ${
+                          product.status === "pending"
+                            ? "border-amber-200 dark:border-amber-800/50 hover:border-amber-300 dark:hover:border-amber-700/50"
+                            : "border-red-200 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700/50"
+                        }`}
+                      >
+                        <div className="relative aspect-[4/5] overflow-hidden bg-(--bg-main)">
+                          <ProductImageCarousel
+                            images={product.images}
+                            alt={product.name}
+                            className="w-full h-full"
+                            imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            placeholder={
+                              <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
+                                <Package size={48} className="opacity-30" />
+                              </div>
+                            }
+                          />
+                          {/* Category: top-left */}
+                          <div className="absolute top-3 left-3 z-10">
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/95 dark:bg-black/80 backdrop-blur-sm text-(--text-main) border border-(--border-color) shadow-sm">
+                              {product.category}
+                            </span>
+                          </div>
+                          {/* Status: top-right */}
+                          <div className="absolute top-3 right-3 z-10">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-md border shadow-sm ${getStatusColor(product.status).badge}`}>
+                              {getStatusIcon(product.status)}
+                              {product.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-display font-bold text-(--text-main) text-lg truncate mb-1">{product.name}</h3>
+                          <p className="text-(--text-secondary) text-sm line-clamp-2 mb-3">{product.description}</p>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-(--bg-main) text-(--text-secondary) border border-(--border-color)">
+                              Stock: {product.stock}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-(--border-color)">
+                            <span className="font-bold text-lg text-[var(--color-burgundy)]">
+                              {Number(product.price || 0).toLocaleString()} Birr
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedProductId(expandedProductId === product._id ? null : product._id)}
+                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-burgundy)] hover:underline"
+                            >
+                              {expandedProductId === product._id ? "Less" : "Details"}
+                              {expandedProductId === product._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </button>
+                          </div>
+                          {expandedProductId === product._id && (
+                            <div className="mt-4 pt-4 border-t border-(--border-color) space-y-3">
+                              <p className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">Gallery ({product.images?.length || 0})</p>
+                              <div className="grid grid-cols-3 gap-2">
+                                {product.images?.map((img, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => window.open(img, "_blank")}
+                                    className="aspect-square rounded-lg overflow-hidden border border-(--border-color) hover:ring-2 hover:ring-[var(--color-burgundy)]/40"
+                                  >
+                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                  </button>
+                                ))}
+                              </div>
+                              <p className="text-[10px] font-mono text-(--text-secondary) truncate">ID: {product._id}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </>
+          ) : (
+            <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
+              <Inbox className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
+              <p className="text-(--text-main) font-semibold mb-1">No submissions yet</p>
+              <p className="text-(--text-secondary) text-sm mb-4">Submit a product for review to see it here.</p>
+              <button
+                type="button"
+                onClick={() => setShowForm(true)}
+                className="btn-primary inline-flex items-center gap-2"
               >
-                <span className="text-xs font-bold opacity-0 group-hover/btn:opacity-100 transition-opacity">
-                  {expandedProductId === product._id
-                    ? "Show Less"
-                    : "Show More"}
-                </span>
-                {expandedProductId === product._id ? (
-                  <ChevronUp size={20} />
-                ) : (
-                  <ChevronDown size={20} />
-                )}
+                <Plus size={18} />
+                New submission
               </button>
             </div>
-          </div>
-        ))}
-        {preProducts.length === 0 && !loading && (
-          <div className="col-span-full py-16 text-center border-2 border-dashed border-(--border-color) rounded-3xl bg-(--bg-card)">
-            <Package className="w-12 h-12 mx-auto mb-3 text-(--text-secondary) opacity-50" />
-            <p className="text-(--text-main) font-medium">
-              No products submitted yet.
-            </p>
-            <p className="text-(--text-secondary) text-sm">
-              Use the form above to add your first item.
-            </p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

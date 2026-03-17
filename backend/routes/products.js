@@ -42,7 +42,15 @@ router.get("/featured", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const baseQuery = buildProductQuery(req.query.q, req.query.category);
+    let baseQuery = buildProductQuery(req.query.q, req.query.category);
+    if (req.query.mine === "1" && req.cookies?.token) {
+      try {
+        const decoded = jwt.verify(req.cookies.token, process.env.JWT_PRIVATE_KEY);
+        if (decoded.role === "vendor" && decoded._id) {
+          baseQuery = { ...baseQuery, ownedBy: decoded._id };
+        }
+      } catch (_) {}
+    }
     const excludeFeatured = req.query.excludeFeatured === "1";
     const pageParam = req.query.page;
     const limitParam = req.query.limit;

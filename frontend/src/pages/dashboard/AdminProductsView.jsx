@@ -272,13 +272,13 @@ const AdminProductsView = () => {
                             <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
                               All Images ({product.images?.length || 0})
                             </h4>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-4">
                               {product.images?.map((img, idx) => (
                                 <img
                                   key={idx}
                                   src={img}
                                   alt={`${product.name} ${idx + 1}`}
-                                  className="w-full h-24 object-cover rounded-xl border border-(--border-color) hover:scale-105 transition-transform cursor-pointer"
+                                  className="max-w-full max-h-[min(70vh,28rem)] w-auto h-auto object-contain rounded-xl border border-(--border-color) cursor-pointer hover:opacity-95 transition-opacity"
                                   onClick={() => window.open(img, "_blank")}
                                 />
                               ))}

@@ -5,6 +5,7 @@ import {
   validateNewPreProduct,
   validatePreProductUpdate,
 } from "../model/preProduct.js";
+import { Product } from "../model/product.js";
 import { validateId } from "../utils/validateId.js";
 import upload from "../middleware/upload.js";
 import cloudinary from "../config/cloudinary.js";
@@ -99,6 +100,46 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     }
   } catch (err) {
     console.error("Error creating preproduct:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/** Approve: create Product from pre-product, then delete the pre-product. */
+router.post("/:id/approve", async (req, res) => {
+  res.set({
+    "Cache-Control": "no-store",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
+  const token = req.cookies.token;
+  if (!token)
+    return res.status(401).json({ success: false, message: "Access Denied" });
+
+  const { error: idError } = validateId(req.params.id);
+  if (idError)
+    return res.status(400).json({ success: false, message: idError.details[0].message });
+
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  if (decoded.role !== "owner" && decoded.role !== "admin")
+    return res.status(403).json({
+      success: false,
+      message: "Only admins/owners can approve pre-products",
+    });
+
+  try {
+    const preProduct = await PreProduct.findById(req.params.id);
+    if (!preProduct)
+      return res.status(404).json({ success: false, message: "Pre-product not found" });
+    if (preProduct.status !== "pending")
+      return res.status(400).json({ success: false, message: "Only pending items can be approved" });
+
+    const { _id, __v, status, ...productData } = preProduct.toObject();
+    const product = new Product(productData);
+    await product.save();
+    await PreProduct.findByIdAndDelete(req.params.id);
+    res.send(product);
+  } catch (err) {
+    console.error("Error approving pre-product:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });

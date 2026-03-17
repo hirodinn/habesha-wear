@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addItemToCart } from "../../redux/cartSlice";
 import productService from "../../services/productService";
+import ProductImageCarousel from "./ProductImageCarousel";
 
 const PRODUCTS_PER_PAGE = 12;
 const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
@@ -64,18 +65,18 @@ const ProductCard = ({
       }`}
     >
       <div className={`relative overflow-hidden ${isCompact ? "aspect-square" : "aspect-[4/5]"}`}>
-        {product.images?.[0] ? (
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-secondary)] gap-2 bg-[var(--bg-main)]">
-            <ShoppingBag size={isCompact ? 40 : 48} className="opacity-20" />
-            <span className="text-sm font-medium opacity-60">No Image</span>
-          </div>
-        )}
+        <ProductImageCarousel
+          images={product.images}
+          alt={product.name}
+          className="w-full h-full"
+          imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          placeholder={
+            <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-secondary)] gap-2 bg-[var(--bg-main)]">
+              <ShoppingBag size={isCompact ? 40 : 48} className="opacity-20" />
+              <span className="text-sm font-medium opacity-60">No Image</span>
+            </div>
+          }
+        />
         <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
           <span className="bg-white/90 dark:bg-black/70 backdrop-blur-sm text-xs font-semibold px-2.5 py-1 rounded-lg text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1">
             <Tag size={10} /> {product.category || "Item"}
@@ -207,18 +208,18 @@ const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadi
         isLarge ? "min-h-[380px] md:min-h-[420px]" : "min-h-[180px] md:min-h-[200px]"
       }`}
     >
-      {product.images?.[0] ? (
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-main)]">
-          <ShoppingBag size={isLarge ? 64 : 40} className="text-[var(--text-secondary)] opacity-30" />
-        </div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      <ProductImageCarousel
+        images={product.images}
+        alt={product.name}
+        className="absolute inset-0 w-full h-full"
+        imageClassName="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        placeholder={
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-main)]">
+            <ShoppingBag size={isLarge ? 64 : 40} className="text-[var(--text-secondary)] opacity-30" />
+          </div>
+        }
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
       <div className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end">
         <span className="inline-flex items-center gap-1.5 text-white/90 text-xs font-semibold uppercase tracking-wider mb-2">
           <Sparkles size={12} /> Top rated
@@ -501,20 +502,19 @@ const ProductGrid = () => {
                       </div>
                     )}
                     <div className={`relative overflow-hidden ${isCenter ? "aspect-[3/4]" : "aspect-[3/3.5]"}`}>
-                      {product.images?.[0] ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-[var(--bg-main)]">
-                          <ShoppingBag size={48} className="text-[var(--text-secondary)] opacity-30" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <ProductImageCarousel
+                        images={product.images}
+                        alt={product.name}
+                        className="h-full w-full"
+                        imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        placeholder={
+                          <div className="h-full w-full flex items-center justify-center bg-[var(--bg-main)]">
+                            <ShoppingBag size={48} className="text-[var(--text-secondary)] opacity-30" />
+                          </div>
+                        }
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
                         {(!user || user.role !== "vendor") && (
                           <button
                             onClick={(e) => {

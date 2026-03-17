@@ -34,20 +34,14 @@ const AdminPendingView = () => {
   const handleApprove = async (product) => {
     setLoading(true);
     try {
-      const { _id, __v, ...productData } = product;
-      delete productData.status;
-      console.log(productData);
-      await axios.post("/api/products", productData);
-      await axios.put(`/api/preproducts/${_id}`, { status: "accepted" });
-      setActionMessage({ type: "success", text: `Approved ${product.name}` });
+      await axios.post(`/api/preproducts/${product._id}/approve`);
+      setActionMessage({ type: "success", text: `Approved "${product.name}" — now live in the shop.` });
       fetchPendingProducts();
     } catch (error) {
       console.error(error);
       setActionMessage({
         type: "error",
-        text:
-          "Approval failed: " +
-          (error.response?.data?.message || error.message),
+        text: "Approval failed: " + (error.response?.data?.message || error.message),
       });
     } finally {
       setLoading(false);
@@ -55,19 +49,12 @@ const AdminPendingView = () => {
   };
 
   const handleReject = async (id) => {
-    if (
-      !confirm(
-        "Are you sure you want to reject this product? This will delete the request."
-      )
-    )
+    if (!confirm("Mark this submission as rejected? The vendor will still see it in their portal with rejected status."))
       return;
     setLoading(true);
     try {
       await axios.put(`/api/preproducts/${id}`, { status: "rejected" });
-      setActionMessage({
-        type: "success",
-        text: "Product request rejected/deleted.",
-      });
+      setActionMessage({ type: "success", text: "Submission marked as rejected." });
       fetchPendingProducts();
     } catch {
       setActionMessage({ type: "error", text: "Rejection failed." });
@@ -280,13 +267,13 @@ const AdminPendingView = () => {
                             <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
                               All Images ({product.images?.length || 0})
                             </h4>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-4">
                               {product.images?.map((img, idx) => (
                                 <img
                                   key={idx}
                                   src={img}
                                   alt={`${product.name} ${idx + 1}`}
-                                  className="w-full h-24 object-cover rounded-xl border border-(--border-color) hover:scale-105 transition-transform cursor-pointer"
+                                  className="max-w-full max-h-[min(70vh,28rem)] w-auto h-auto object-contain rounded-xl border border-(--border-color) cursor-pointer hover:opacity-95 transition-opacity"
                                   onClick={() => window.open(img, "_blank")}
                                 />
                               ))}

@@ -39,6 +39,11 @@ const productService = {
     const response = await axios.get(`${API_URL}/${id}`);
     return response.data;
   },
+  /** Products owned by the current vendor (requires auth). */
+  fetchVendorProducts: async () => {
+    const response = await axios.get(`${API_URL}?mine=1`, { withCredentials: true });
+    return Array.isArray(response.data) ? response.data : response.data?.products ?? [];
+  },
   rateProduct: async (id, value) => {
     const response = await axios.put(
       `${API_URL}/${id}/rating`,
