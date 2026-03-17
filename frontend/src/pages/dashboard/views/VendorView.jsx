@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import productService from "../../../services/productService";
 import {
   Plus,
   Package,
@@ -30,9 +31,23 @@ const VendorView = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [expandedProductId, setExpandedProductId] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     fetchPreProducts();
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const list = await productService.fetchCategories();
+        setCategories(list.length ? list : ["Accessories", "Clothing", "Modern", "Traditional"]);
+      } catch (err) {
+        console.error("Error loading categories:", err);
+        setCategories(["Accessories", "Clothing", "Modern", "Traditional"]);
+      }
+    };
+    load();
   }, []);
 
   const fetchPreProducts = async () => {
@@ -365,10 +380,11 @@ const VendorView = () => {
                 <option value="" disabled>
                   Select Category
                 </option>
-                <option value="clothing">Clothing</option>
-                <option value="modern">Modern</option>
-                <option value="accessories">Accessories</option>
-                <option value="traditional">Traditional</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
               </select>
             </div>
 

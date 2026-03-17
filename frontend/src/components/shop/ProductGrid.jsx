@@ -116,6 +116,11 @@ const ProductCard = ({
             )}
           </div>
         </div>
+        {!isCompact && (
+          <p className="text-[var(--text-secondary)] text-sm line-clamp-2 mb-3 flex-1">
+            {product.description || "No description available."}
+          </p>
+        )}
         {user?.role === "customer" && (
           <div className="mb-3">
             <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">
@@ -151,11 +156,6 @@ const ProductCard = ({
               )}
             </div>
           </div>
-        )}
-        {!isCompact && (
-          <p className="text-[var(--text-secondary)] text-sm line-clamp-2 mb-3 flex-1">
-            {product.description || "No description available."}
-          </p>
         )}
         <div className="pt-3 border-t border-[var(--border-color)] flex justify-between items-center mt-auto">
           <span className="font-bold text-[var(--color-burgundy)]">

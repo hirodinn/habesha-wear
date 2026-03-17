@@ -28,6 +28,13 @@ const productService = {
     const response = await axios.get(API_URL);
     return response.data;
   },
+  /** Same categories used for shop filter: unique from all products, sorted. */
+  fetchCategories: async () => {
+    const all = await productService.fetchAllProducts();
+    const list = Array.isArray(all) ? all : [];
+    const raw = list.map((p) => (p.category || "").trim()).filter(Boolean);
+    return [...new Set(raw)].sort((a, b) => a.localeCompare(b));
+  },
   fetchProductById: async (id) => {
     const response = await axios.get(`${API_URL}/${id}`);
     return response.data;
