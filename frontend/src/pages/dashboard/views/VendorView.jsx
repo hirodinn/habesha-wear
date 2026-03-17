@@ -15,7 +15,6 @@ import {
   X,
   Loader2,
   Upload,
-  Image as ImageIcon,
   Store,
   Inbox,
   ExternalLink,
@@ -27,7 +26,6 @@ const TAB_SUBMISSIONS = "submissions";
 const VendorView = () => {
   const { user } = useSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState(TAB_LIVE);
-  const [preProducts, setPreProducts] = useState([]);
   const [vendorProducts, setVendorProducts] = useState([]);
   const [loadingVendorProducts, setLoadingVendorProducts] = useState(true);
 
@@ -37,7 +35,16 @@ const VendorView = () => {
     const id = String(user.id ?? user._id);
     return vendorProducts.filter((p) => {
       const ownerId = p.ownedBy ? String(p.ownedBy._id ?? p.ownedBy) : "";
-      return ownerId === id;
+      return ownerId === id && (!p.status || p.status === "active");
+    });
+  }, [vendorProducts, user]);
+  const submissionProducts = useMemo(() => {
+    if (!user?.id && !user?._id)
+      return vendorProducts.filter((p) => p.status && p.status !== "active");
+    const id = String(user.id ?? user._id);
+    return vendorProducts.filter((p) => {
+      const ownerId = p.ownedBy ? String(p.ownedBy._id ?? p.ownedBy) : "";
+      return ownerId === id && p.status && p.status !== "active";
     });
   }, [vendorProducts, user]);
   const [showForm, setShowForm] = useState(false);
@@ -54,26 +61,23 @@ const VendorView = () => {
   const [message, setMessage] = useState(null);
   const [expandedProductId, setExpandedProductId] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [submissionFilter, setSubmissionFilter] = useState("all"); // "all" | "pending" | "rejected"
+  const [submissionFilter, setSubmissionFilter] = useState("all"); // "all" | "pending" | "archived"
+
+  const fetchVendorProducts = async () => {
+    setLoadingVendorProducts(true);
+    try {
+      const list = await productService.fetchVendorProducts();
+      setVendorProducts(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error("Error loading vendor products:", err);
+      setVendorProducts([]);
+    } finally {
+      setLoadingVendorProducts(false);
+    }
+  };
 
   useEffect(() => {
-    fetchPreProducts();
-  }, []);
-
-  useEffect(() => {
-    const load = async () => {
-      setLoadingVendorProducts(true);
-      try {
-        const list = await productService.fetchVendorProducts();
-        setVendorProducts(Array.isArray(list) ? list : []);
-      } catch (err) {
-        console.error("Error loading vendor products:", err);
-        setVendorProducts([]);
-      } finally {
-        setLoadingVendorProducts(false);
-      }
-    };
-    load();
+    fetchVendorProducts();
   }, []);
 
   useEffect(() => {
@@ -88,15 +92,6 @@ const VendorView = () => {
     };
     load();
   }, []);
-
-  const fetchPreProducts = async () => {
-    try {
-      const response = await axios.get("/api/preproducts");
-      setPreProducts(response.data);
-    } catch (error) {
-      console.error("Error fetching pre-products:", error);
-    }
-  };
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -164,7 +159,7 @@ const VendorView = () => {
         formData.append("images", image);
       });
 
-      await axios.post("/api/preproducts", formData, {
+      await axios.post("/api/products", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -181,7 +176,7 @@ const VendorView = () => {
       });
       setSelectedImages([]);
       setImagePreviews([]);
-      fetchPreProducts();
+      fetchVendorProducts();
     } catch (error) {
       setMessage({
         type: "error",
@@ -201,14 +196,14 @@ const VendorView = () => {
           dot: "bg-yellow-500",
           border: "border-yellow-500",
         };
-      case "accepted":
+      case "active":
         return {
           badge:
             "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-500/20",
           dot: "bg-green-500",
           border: "border-green-500",
         };
-      case "rejected":
+      case "archived":
         return {
           badge:
             "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-500/20",
@@ -227,9 +222,9 @@ const VendorView = () => {
 
   const getStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
-      case "accepted":
+      case "active":
         return <CheckCircle size={14} />;
-      case "rejected":
+      case "archived":
         return <XCircle size={14} />;
       default:
         return <Clock size={14} />;
@@ -312,7 +307,7 @@ const VendorView = () => {
             <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
               activeTab === TAB_SUBMISSIONS ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
             }`}>
-              {preProducts.length}
+              {submissionProducts.length}
             </span>
           </button>
         </div>
@@ -566,15 +561,15 @@ const VendorView = () => {
       {/* Tab content: Submissions (pre-products by status) */}
       {activeTab === TAB_SUBMISSIONS && (
         <div className="animate-fade-in">
-          {preProducts.length > 0 ? (
+          {submissionProducts.length > 0 ? (
             <>
-              {/* Filter: All | Pending | Rejected */}
+              {/* Filter: All | Pending | Archived */}
               <div className="flex flex-wrap items-center gap-2 mb-6">
                 <span className="text-sm font-medium text-(--text-secondary) mr-1">Show:</span>
                 {[
-                  { value: "all", label: "All", count: preProducts.length },
-                  { value: "pending", label: "Pending", count: preProducts.filter((p) => p.status === "pending").length },
-                  { value: "rejected", label: "Rejected", count: preProducts.filter((p) => p.status === "rejected").length },
+                  { value: "all", label: "All", count: submissionProducts.length },
+                  { value: "pending", label: "Pending", count: submissionProducts.filter((p) => p.status === "pending").length },
+                  { value: "archived", label: "Archived", count: submissionProducts.filter((p) => p.status === "archived").length },
                 ].map(({ value, label, count }) => (
                   <button
                     key={value}
@@ -594,8 +589,8 @@ const VendorView = () => {
 
               {(() => {
                 const filtered = submissionFilter === "all"
-                  ? preProducts
-                  : preProducts.filter((p) => p.status === submissionFilter);
+                  ? submissionProducts
+                  : submissionProducts.filter((p) => p.status === submissionFilter);
                 if (filtered.length === 0) {
                   return (
                     <div className="py-12 text-center rounded-2xl border border-dashed border-(--border-color) bg-(--bg-card) text-(--text-secondary) text-sm">

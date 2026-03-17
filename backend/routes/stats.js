@@ -3,7 +3,6 @@ import { Product } from "../model/product.js";
 import { User } from "../model/user.js";
 import { Order } from "../model/order.js";
 import { Cart } from "../model/cart.js";
-import { PreProduct } from "../model/preProduct.js";
 
 const router = express.Router();
 
@@ -11,7 +10,7 @@ router.get("/", async (req, res) => {
   try {
     const productsCount = await Product.countDocuments();
     const usersCount = await User.countDocuments();
-    const pendingProductsCount = await PreProduct.countDocuments({
+    const pendingProductsCount = await Product.countDocuments({
       status: "pending",
     });
     const ordersCount = await Order.countDocuments();

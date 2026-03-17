@@ -28,6 +28,11 @@ const productSchema = new mongoose.Schema({
   ratings: { type: [ratingSchema], default: [] },
   ratingAverage: { type: Number, default: 0, min: 0, max: 5 },
   ratingCount: { type: Number, default: 0, min: 0 },
+  status: {
+    type: String,
+    enum: ["pending", "active", "archived"],
+    default: "pending",
+  },
 });
 
 export const Product = mongoose.model("Product", productSchema);
@@ -41,6 +46,7 @@ export function validateNewProduct(product) {
     stock: Joi.number().min(0).required(),
     images: Joi.array().items(Joi.string().uri()),
     ownedBy: Joi.objectId(),
+    status: Joi.string().valid("pending", "active", "archived"),
   });
   return schema.validate(product || {});
 }
@@ -55,6 +61,13 @@ export function validateProductUpdate(product) {
 export function validateProductRating(payload) {
   const schema = Joi.object({
     value: Joi.number().integer().min(1).max(5).required(),
+  });
+  return schema.validate(payload || {});
+}
+
+export function validateProductStatusUpdate(payload) {
+  const schema = Joi.object({
+    status: Joi.string().valid("pending", "active", "archived").required(),
   });
   return schema.validate(payload || {});
 }

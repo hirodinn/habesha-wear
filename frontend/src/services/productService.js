@@ -4,7 +4,7 @@ const API_URL = "/api/products";
 
 const productService = {
   fetchFeatured: async (limit = 3, query = "", category = "all") => {
-    const params = new URLSearchParams({ limit });
+    const params = new URLSearchParams({ limit, scope: "shop" });
     if (query?.trim()) params.set("q", query.trim());
     if (category && category !== "all") params.set("category", category);
     const response = await axios.get(`${API_URL}/featured?${params}`);
@@ -17,7 +17,7 @@ const productService = {
     query = "",
     category = "all"
   ) => {
-    const params = new URLSearchParams({ page, limit });
+    const params = new URLSearchParams({ page, limit, scope: "shop" });
     if (excludeFeatured) params.set("excludeFeatured", "1");
     if (query?.trim()) params.set("q", query.trim());
     if (category && category !== "all") params.set("category", category);
@@ -25,7 +25,8 @@ const productService = {
     return response.data;
   },
   fetchAllProducts: async () => {
-    const response = await axios.get(API_URL);
+    const params = new URLSearchParams({ scope: "shop" });
+    const response = await axios.get(`${API_URL}?${params}`);
     return response.data;
   },
   /** Same categories used for shop filter: unique from all products, sorted. */

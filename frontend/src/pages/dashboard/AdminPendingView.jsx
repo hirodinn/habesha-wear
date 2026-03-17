@@ -20,7 +20,7 @@ const AdminPendingView = () => {
 
   const fetchPendingProducts = async () => {
     try {
-      const response = await axios.get("/api/preproducts");
+      const response = await axios.get("/api/products?status=pending");
       setPendingProducts(response.data);
     } catch (error) {
       console.error("Error fetching pending products:", error);
@@ -34,7 +34,7 @@ const AdminPendingView = () => {
   const handleApprove = async (product) => {
     setLoading(true);
     try {
-      await axios.post(`/api/preproducts/${product._id}/approve`);
+      await axios.put(`/api/products/${product._id}/status`, { status: "active" });
       setActionMessage({ type: "success", text: `Approved "${product.name}" — now live in the shop.` });
       fetchPendingProducts();
     } catch (error) {
@@ -49,12 +49,12 @@ const AdminPendingView = () => {
   };
 
   const handleReject = async (id) => {
-    if (!confirm("Mark this submission as rejected? The vendor will still see it in their portal with rejected status."))
+    if (!confirm("Archive this submission? The vendor will still see it in their portal."))
       return;
     setLoading(true);
     try {
-      await axios.put(`/api/preproducts/${id}`, { status: "rejected" });
-      setActionMessage({ type: "success", text: "Submission marked as rejected." });
+      await axios.put(`/api/products/${id}/status`, { status: "archived" });
+      setActionMessage({ type: "success", text: "Submission archived." });
       fetchPendingProducts();
     } catch {
       setActionMessage({ type: "error", text: "Rejection failed." });
