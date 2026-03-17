@@ -8,6 +8,9 @@ import {
   ChevronRight,
   Tag,
   Sparkles,
+  Search,
+  X,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +18,7 @@ import { addItemToCart } from "../../redux/cartSlice";
 import productService from "../../services/productService";
 
 const PRODUCTS_PER_PAGE = 12;
+const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
 
 const ProductCard = ({
   product,
@@ -105,7 +109,9 @@ const ProductCard = ({
               {ratingCount > 0 ? ratingAverage.toFixed(1) : "—"}
             </span>
             {ratingCount > 0 && (
-              <span className="text-[10px] text-[var(--text-secondary)]">({ratingCount})</span>
+              <span className="text-[10px] text-[var(--text-secondary)]">
+                ({formatNumber(ratingCount)})
+              </span>
             )}
           </div>
         </div>
@@ -152,7 +158,7 @@ const ProductCard = ({
         )}
         <div className="pt-3 border-t border-[var(--border-color)] flex justify-between items-center mt-auto">
           <span className="font-bold text-[var(--color-burgundy)]">
-            {product.price} Birr
+            {formatNumber(product.price)} Birr
           </span>
           <span
             className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${
@@ -223,7 +229,9 @@ const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadi
           {product.description}
         </p>
         <div className="flex items-center justify-between gap-3">
-          <span className="font-bold text-white text-lg">{product.price} Birr</span>
+          <span className="font-bold text-white text-lg">
+            {formatNumber(product.price)} Birr
+          </span>
           {(!user || user.role !== "vendor") && (
             <button
               onClick={(e) => {
@@ -260,11 +268,15 @@ const ProductGrid = () => {
   const [loadingPaginated, setLoadingPaginated] = useState(true);
   const [addingToCart, setAddingToCart] = useState(null);
   const [ratingLoadingId, setRatingLoadingId] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categories, setCategories] = useState([]);
 
-  const loadFeatured = async () => {
+  const loadFeatured = async (query = "", category = "all") => {
     setLoadingFeatured(true);
     try {
-      const data = await productService.fetchFeatured(3);
+      const data = await productService.fetchFeatured(3, query, category);
       setFeatured(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching featured:", err);
@@ -274,11 +286,17 @@ const ProductGrid = () => {
     }
   };
 
-  const loadPaginated = async (page = 1) => {
+  const loadPaginated = async (page = 1, query = "", category = "all") => {
     setLoadingPaginated(true);
     setPaginated((prev) => ({ ...prev, products: [] }));
     try {
-      const data = await productService.fetchProductsPaginated(page, PRODUCTS_PER_PAGE, true);
+      const data = await productService.fetchProductsPaginated(
+        page,
+        PRODUCTS_PER_PAGE,
+        true,
+        query,
+        category
+      );
       setPaginated({
         products: data.products || [],
         total: data.total || 0,
@@ -294,12 +312,34 @@ const ProductGrid = () => {
   };
 
   useEffect(() => {
-    loadFeatured();
+    const loadCategories = async () => {
+      try {
+        const allProducts = await productService.fetchAllProducts();
+        const all = (Array.isArray(allProducts) ? allProducts : [])
+          .map((p) => (p.category || "").trim())
+          .filter(Boolean);
+        const unique = [...new Set(all)].sort((a, b) => a.localeCompare(b));
+        setCategories(unique);
+      } catch (err) {
+        console.error("Error loading categories:", err);
+        setCategories([]);
+      }
+    };
+
+    loadCategories();
   }, []);
 
   useEffect(() => {
-    loadPaginated(1);
-  }, []);
+    const timeout = setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  useEffect(() => {
+    loadFeatured(searchQuery, categoryFilter);
+    loadPaginated(1, searchQuery, categoryFilter);
+  }, [searchQuery, categoryFilter]);
 
   const handleAddToCart = async (product) => {
     if (!user) {
@@ -335,18 +375,84 @@ const ProductGrid = () => {
 
   const goToPage = (page) => {
     if (page < 1 || page > paginated.totalPages) return;
-    loadPaginated(page);
+    loadPaginated(page, searchQuery, categoryFilter);
   };
 
   return (
     <div className="space-y-16 animate-fade-in">
+      <section>
+        <div className="relative max-w-2xl mx-auto">
+          <Search
+            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
+          />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search products by name, category or description"
+            className="w-full pl-11 pr-12 py-3 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] placeholder:text-[var(--text-secondary)] outline-none focus:ring-2 focus:ring-[var(--color-burgundy)]/30 focus:border-[var(--color-burgundy)] transition-all"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-main)]"
+              aria-label="Clear search"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--text-secondary)] px-2 py-1">
+            <SlidersHorizontal size={13} /> Categories:
+          </span>
+          <button
+            type="button"
+            onClick={() => setCategoryFilter("all")}
+            className={`px-5 py-2.5 rounded-lg text-sm font-bold border transition-all ${
+              categoryFilter === "all"
+                ? "bg-[var(--color-burgundy)] text-white border-[var(--color-burgundy)] shadow-md shadow-[var(--color-burgundy)]/25"
+                : "bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[var(--color-burgundy)]/40 hover:bg-[var(--bg-main)]"
+            }`}
+          >
+            All
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => setCategoryFilter(category)}
+              className={`px-5 py-2.5 rounded-lg text-sm font-bold border transition-all ${
+                categoryFilter === category
+                  ? "bg-[var(--color-burgundy)] text-white border-[var(--color-burgundy)] shadow-md shadow-[var(--color-burgundy)]/25"
+                  : "bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[var(--color-burgundy)]/40 hover:bg-[var(--bg-main)]"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Featured: modern bento layout */}
       <section>
-        <div className="flex items-center gap-3 mb-8">
-          <span className="w-8 h-1 rounded-full bg-[var(--color-burgundy)]" />
-          <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-main)]">
-            Top rated
-          </h2>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-1 rounded-full bg-[var(--color-burgundy)]" />
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-main)]">
+              {searchQuery ? "Top matches" : "Top rated"}
+            </h2>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {searchQuery || categoryFilter !== "all"
+              ? `Filtered${
+                  searchQuery ? ` by “${searchQuery}”` : ""
+                }${categoryFilter !== "all" ? ` in ${categoryFilter}` : ""}`
+              : "Featured picks based on customer ratings"}
+          </p>
         </div>
         {loadingFeatured ? (
           <div className="flex justify-center py-24 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)]">
@@ -397,11 +503,18 @@ const ProductGrid = () => {
 
       {/* All products: clean grid */}
       <section>
-        <div className="flex items-center gap-3 mb-8">
-          <span className="w-8 h-1 rounded-full bg-[var(--color-burgundy)]" />
-          <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-main)]">
-            All products
-          </h2>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-1 rounded-full bg-[var(--color-burgundy)]" />
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-main)]">
+              All products
+            </h2>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {searchQuery || categoryFilter !== "all"
+              ? `${formatNumber(paginated.total)} matching results`
+              : `${formatNumber(paginated.total)} products available`}
+          </p>
         </div>
         {loadingPaginated ? (
           <div className="flex justify-center py-24 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)]">
@@ -435,7 +548,7 @@ const ProductGrid = () => {
                   Previous
                 </button>
                 <span className="text-sm font-medium text-[var(--text-secondary)]">
-                  Page {paginated.page} of {paginated.totalPages}
+                  Page {formatNumber(paginated.page)} of {formatNumber(paginated.totalPages)}
                 </span>
                 <button
                   onClick={() => goToPage(paginated.page + 1)}
@@ -454,7 +567,9 @@ const ProductGrid = () => {
             <ShoppingBag className="w-14 h-14 mx-auto mb-4 text-[var(--text-secondary)] opacity-50" />
             <h3 className="text-xl font-bold text-[var(--text-main)] mb-2">No more products</h3>
             <p className="text-[var(--text-secondary)]">
-              The rest are in the Top Rated section above.
+              {searchQuery || categoryFilter !== "all"
+                ? "No products match your search. Try a different keyword."
+                : "The rest are in the Top Rated section above."}
             </p>
           </div>
         )}

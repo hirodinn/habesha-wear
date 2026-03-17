@@ -13,6 +13,8 @@ import {
 import productService from "../../services/productService";
 import { addItemToCart } from "../../redux/cartSlice";
 
+const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -111,12 +113,22 @@ const ProductDetail = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-main)]"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[var(--border-color)]">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)] mb-1">
+            Product Details
+          </p>
+          <h2 className="text-xl font-display font-bold text-[var(--text-main)]">
+            Explore and rate this item
+          </h2>
+        </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-main)]"
+        >
+          <ArrowLeft size={16} /> Back
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-4">
@@ -173,12 +185,14 @@ const ProductDetail = () => {
               </span>
             </div>
             {ratingCount > 0 && (
-              <span className="text-sm text-[var(--text-secondary)]">({ratingCount} ratings)</span>
+              <span className="text-sm text-[var(--text-secondary)]">
+                ({formatNumber(ratingCount)} ratings)
+              </span>
             )}
           </div>
 
           <div className="text-2xl font-bold text-[var(--color-burgundy)]">
-            {product.price} Birr
+            {formatNumber(product.price)} Birr
           </div>
 
           <div>
@@ -234,7 +248,9 @@ const ProductDetail = () => {
                   : "bg-red-500/15 text-red-600 dark:text-red-400"
               }`}
             >
-              {product.stock > 0 ? `${product.stock} in stock` : "Sold out"}
+              {product.stock > 0
+                ? `${formatNumber(product.stock)} in stock`
+                : "Sold out"}
             </span>
           </div>
 

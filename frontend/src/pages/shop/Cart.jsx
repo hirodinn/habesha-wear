@@ -7,25 +7,19 @@ import {
   ShoppingBag,
   ArrowLeft,
   CreditCard,
-  Loader2,
 } from "lucide-react";
 import {
   updateItemQuantity,
   removeItem,
   getCart,
-  clearCart,
   setItems,
 } from "../../redux/cartSlice";
-import { useState, useEffect } from "react";
-
-import { fetchCart, removeCart } from "../../services/cartService";
-import orderService from "../../services/orderService";
+import { useEffect } from "react";
 const Cart = () => {
-  const { items: cartItems, loading } = useSelector((state) => state.cart);
+  const { items: cartItems } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -49,42 +43,8 @@ const Cart = () => {
     );
   };
 
-  const handleCheckout = async () => {
-    if (isCheckingOut) return;
-    setIsCheckingOut(true);
-    try {
-      const data = await fetchCart();
-      const cart = Array.isArray(data) ? data[0] : data;
-
-      if (!cart || !cart.products || cart.products.length === 0) {
-        alert("Your cart is empty!");
-        setIsCheckingOut(false);
-        return;
-      }
-
-      // Format products for backend: only productId and quantity
-      const orderProducts = cart.products.map((p) => ({
-        productId: p.productId,
-        quantity: p.quantity,
-      }));
-
-      await orderService.postOrders({
-        products: orderProducts,
-        totalAmount: calculateTotal(),
-      });
-
-      // Clear cart on success
-      await removeCart();
-      dispatch(clearCart());
-
-      alert("Order placed successfully!");
-      navigate("/dashboard"); // Redirect to orders view
-    } catch (error) {
-      console.error("Checkout failed:", error);
-      alert("Checkout failed. Please try again.");
-    } finally {
-      setIsCheckingOut(false);
-    }
+  const handleCheckout = () => {
+    navigate("/checkout");
   };
 
   if (!user) {
@@ -139,9 +99,17 @@ const Cart = () => {
                 className="card-standard p-4 flex gap-6 items-center"
               >
                 <div className="w-24 h-24 bg-[var(--bg-main)] rounded-lg overflow-hidden flex-shrink-0 border border-[var(--border-color)]">
-                  <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]">
-                    <ShoppingBag size={32} className="opacity-40" />
-                  </div>
+                  {item.images?.[0] ? (
+                    <img
+                      src={item.images[0]}
+                      alt={item.name || "Product"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]">
+                      <ShoppingBag size={32} className="opacity-40" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex-1 space-y-1">
@@ -248,22 +216,15 @@ const Cart = () => {
               <button
                 className="btn-primary w-full py-4 flex items-center justify-center gap-2 group mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
                 onClick={handleCheckout}
-                disabled={isCheckingOut || cartItems.length === 0}
+                disabled={cartItems.length === 0}
               >
-                {isCheckingOut ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Proceed to Checkout
-                    <CreditCard
-                      size={18}
-                      className="group-hover:translate-x-1 transition-transform"
-                    />
-                  </>
-                )}
+                <>
+                  Proceed to Checkout
+                  <CreditCard
+                    size={18}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </>
               </button>
 
               <p className="text-[10px] text-center text-[var(--text-secondary)]">

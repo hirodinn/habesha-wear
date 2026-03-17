@@ -8,13 +8,22 @@ import {
   AlertCircle,
   ShoppingBag,
   RefreshCw,
+  Search,
+  XCircle,
+  Calendar,
+  Receipt,
+  Boxes,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const CustomerView = () => {
+  const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchOrders();
@@ -63,6 +72,37 @@ const CustomerView = () => {
     }
   };
 
+  const getOrderItems = (order) => {
+    const items = order.items || order.products || [];
+    return Array.isArray(items) ? items : [];
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    const status = (order.status || "pending").toLowerCase();
+    const ref = order._id?.slice(-8).toUpperCase() || "";
+    const query = search.trim().toLowerCase();
+
+    const matchesStatus = statusFilter === "all" || status === statusFilter;
+    const matchesSearch = !query || ref.toLowerCase().includes(query);
+    return matchesStatus && matchesSearch;
+  });
+
+  const counts = {
+    all: orders.length,
+    pending: orders.filter((o) => o.status?.toLowerCase() === "pending").length,
+    shipped: orders.filter((o) => o.status?.toLowerCase() === "shipped").length,
+    delivered: orders.filter((o) => o.status?.toLowerCase() === "delivered").length,
+    cancelled: orders.filter((o) => o.status?.toLowerCase() === "cancelled").length,
+  };
+
+  const statusOptions = [
+    { key: "all", label: "All" },
+    { key: "pending", label: "Pending" },
+    { key: "shipped", label: "Shipped" },
+    { key: "delivered", label: "Delivered" },
+    { key: "cancelled", label: "Cancelled" },
+  ];
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -73,18 +113,24 @@ const CustomerView = () => {
 
   return (
     <div className="space-y-8 animate-fade-in w-full">
-      <div className="bg-gradient-to-br from-[var(--color-burgundy)] to-[var(--color-burgundy)]/90 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-[var(--color-burgundy)]/20">
-        <div className="relative z-10 flex justify-between items-start">
+      <div className="rounded-3xl p-6 md:p-8 bg-[var(--bg-card)] border border-[var(--border-color)] shadow-lg relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--color-burgundy)]/10 via-transparent to-[var(--color-burgundy)]/5" />
+        <div className="relative z-10 flex justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">My Orders</h1>
-            <p className="opacity-90 font-medium">
-              Track your traditional treasures
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)] mb-2">
+              customer dashboard
+            </p>
+            <h1 className="text-3xl font-display font-bold text-[var(--text-main)] mb-2">
+              My Orders
+            </h1>
+            <p className="text-[var(--text-secondary)] font-medium">
+              Clean overview of all your purchases and delivery status.
             </p>
           </div>
           <button
             onClick={() => fetchOrders(true)}
             disabled={isRefreshing}
-            className="p-3 bg-white/20 hover:bg-white/30 rounded-2xl transition-all active:scale-95 disabled:opacity-50 group"
+            className="p-3 bg-[var(--bg-main)] hover:bg-[var(--bg-main)]/70 rounded-2xl transition-all active:scale-95 disabled:opacity-50 group text-[var(--text-main)] border border-[var(--border-color)]"
             title="Refresh Orders"
           >
             <RefreshCw
@@ -97,17 +143,47 @@ const CustomerView = () => {
             />
           </button>
         </div>
-        <Package className="absolute right-[-20px] bottom-[-20px] w-48 h-48 opacity-10 -rotate-12" />
+        <Package className="absolute right-[-20px] bottom-[-20px] w-48 h-48 text-[var(--color-burgundy)] opacity-10 -rotate-12" />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        {statusOptions.map((option) => (
+          <button
+            key={option.key}
+            onClick={() => setStatusFilter(option.key)}
+            className={`rounded-xl px-3 py-2.5 border text-sm font-semibold transition-all ${
+              statusFilter === option.key
+                ? "bg-[var(--color-burgundy)] text-white border-[var(--color-burgundy)]"
+                : "bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--border-color)] hover:border-[var(--color-burgundy)]/40"
+            }`}
+          >
+            {option.label} ({formatNumber(counts[option.key] || 0)})
+          </button>
+        ))}
+      </div>
+
+      <div className="relative max-w-md">
+        <Search
+          size={17}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
+        />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by order reference"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-main)] outline-none focus:ring-2 focus:ring-[var(--color-burgundy)]/30"
+        />
       </div>
 
       <div className="space-y-4">
         {orders.length === 0 ? (
-          <div className="text-center py-20 card-standard bg-(--bg-card) border-dashed border-2">
-            <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-(--text-secondary) opacity-30" />
-            <h3 className="text-xl font-bold text-(--text-main) mb-2">
+          <div className="text-center py-20 card-standard bg-[var(--bg-card)] border-dashed border-2">
+            <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-[var(--text-secondary)] opacity-30" />
+            <h3 className="text-xl font-bold text-[var(--text-main)] mb-2">
               No orders found
             </h3>
-            <p className="text-(--text-secondary) mb-6">
+            <p className="text-[var(--text-secondary)] mb-6">
               Start exploring our collection to place your first order!
             </p>
             <Link
@@ -117,119 +193,113 @@ const CustomerView = () => {
               Shop Now
             </Link>
           </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="text-center py-16 card-standard bg-[var(--bg-card)]">
+            <XCircle className="w-12 h-12 mx-auto mb-4 text-[var(--text-secondary)] opacity-40" />
+            <h3 className="text-lg font-bold text-[var(--text-main)]">No matching orders</h3>
+            <p className="text-[var(--text-secondary)] mt-2">
+              Try changing filters or search term.
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
-            {orders.map((order) => (
-              <div
-                key={order._id}
-                className="card-standard overflow-hidden bg-(--bg-card) border-l-4 transition-all hover:translate-x-1 group flex flex-col h-full"
-                style={{
-                  borderLeftColor:
-                    order.status?.toLowerCase() === "delivered"
-                      ? "#22c55e"
-                      : order.status?.toLowerCase() === "shipped"
-                      ? "#3b82f6"
-                      : order.status?.toLowerCase() === "pending"
-                      ? "#eab308"
-                      : "#64748b",
-                }}
-              >
-                <div className="p-6 flex-1 flex flex-col">
-                  {/* Order Header */}
-                  <div className="flex items-center justify-between gap-4 mb-6">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-(--text-secondary)">
-                        Order Ref
-                      </p>
-                      <h3 className="text-lg font-display font-bold text-(--text-main)">
-                        #{order._id.slice(-8).toUpperCase()}
-                      </h3>
-                    </div>
-                    <div
-                      className={`px-3 py-1.5 rounded-full flex items-center gap-2 text-[10px] font-bold leading-none ${getStatusColor(
-                        order.status || "Pending"
-                      )}`}
-                    >
-                      {getStatusIcon(order.status || "Pending")}
-                      <span className="uppercase tracking-wider">
-                        {order.status || "Pending"}
-                      </span>
-                    </div>
-                  </div>
+            {filteredOrders.map((order) => {
+              const items = getOrderItems(order);
+              const status = (order.status || "pending").toLowerCase();
 
-                  {/* Order Details Grid */}
-                  <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-(--border-color)/30">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-(--text-secondary) uppercase">
-                        Placed On
-                      </p>
-                      <p className="text-xs font-semibold text-(--text-main)">
-                        {new Date(order.orderDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-(--text-secondary) uppercase">
-                        Total
-                      </p>
-                      <p className="text-sm font-bold text-(--text-main)">
-                        {order.totalAmount} Birr
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Item Summary Box */}
-                  <div className="flex-1 bg-[(--bg-main)]/50 rounded-2xl p-4 border border-(--border-color)/50 ring-1 ring-black/2 dark:ring-white/2 mb-6">
-                    <div className="flex items-center justify-between mb-3 px-1">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-(--text-secondary)">
-                        Items
-                      </span>
-                      <span className="text-[10px] font-bold text-(--text-main)">
-                        {order.items?.length || 0} Total
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {order.items?.slice(0, 2).map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-3 px-2 py-2 rounded-xl bg-(--bg-card) border border-(--border-color) shadow-sm"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-(--bg-card)/10 flex items-center justify-center text-(--text-main) shrink-0">
-                            <Package size={14} />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-bold text-(--text-main) truncate">
-                              {item.productName || "Product"}
-                            </p>
-                            <p className="text-[9px] text-(--text-secondary) font-medium">
-                              Qty: {item.quantity}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      {order.items?.length > 2 && (
-                        <p className="text-[10px] font-bold text-[var(--color-burgundy)]/80 text-center pt-1">
-                          + {order.items.length - 2} more items
+              return (
+                <div
+                  key={order._id}
+                  className="card-standard overflow-hidden bg-[var(--bg-card)] transition-all hover:-translate-y-0.5 group flex flex-col h-full"
+                >
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+                          Order
                         </p>
-                      )}
+                        <h3 className="text-lg font-display font-bold text-[var(--text-main)]">
+                          #{order._id.slice(-8).toUpperCase()}
+                        </h3>
+                      </div>
+                      <div
+                        className={`px-3 py-1.5 rounded-full flex items-center gap-2 text-[10px] font-bold leading-none ${getStatusColor(
+                          status
+                        )}`}
+                      >
+                        {getStatusIcon(status)}
+                        <span className="uppercase tracking-wider">{status}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Actions Mapping to Grid Bottom */}
-                  <div className="flex items-center gap-2 mt-auto">
-                    <button className="flex-1 px-4 py-2.5 rounded-xl bg-(--bg-main) text-(--text-main) text-xs font-bold hover:bg-(--bg-main)/50 shadow-lg shadow-(--bg-main)/20 transition-all">
-                      Details
-                    </button>
-                    <button className="px-4 py-2.5 rounded-xl bg-(--bg-main) text-(--text-main) text-xs font-bold border border-(--border-color) hover:border-(--bg-main)/50 transition-all">
-                      Track
-                    </button>
+                    <div className="grid grid-cols-2 gap-4 mb-5">
+                      <div className="rounded-xl border border-[var(--border-color)] p-3 bg-[var(--bg-main)]/30">
+                        <p className="text-[10px] font-bold uppercase text-[var(--text-secondary)] flex items-center gap-1">
+                          <Calendar size={11} /> Placed On
+                        </p>
+                        <p className="text-xs font-semibold text-[var(--text-main)] mt-1">
+                          {new Date(order.orderDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-[var(--border-color)] p-3 bg-[var(--bg-main)]/30">
+                        <p className="text-[10px] font-bold uppercase text-[var(--text-secondary)] flex items-center gap-1">
+                          <Receipt size={11} /> Total
+                        </p>
+                        <p className="text-sm font-bold text-[var(--text-main)] mt-1">
+                          {formatNumber(order.totalAmount)} Birr
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 rounded-2xl p-4 border border-[var(--border-color)]/50 bg-[var(--bg-main)]/40 mb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)] flex items-center gap-1">
+                          <Boxes size={11} />
+                          Items
+                        </span>
+                        <span className="text-[10px] font-bold text-[var(--text-main)]">
+                          {formatNumber(items.length)} Total
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {items.slice(0, 3).map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-3 px-2 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-main)] shrink-0">
+                              <Package size={14} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[11px] font-bold text-[var(--text-main)] truncate">
+                                {item.productName ||
+                                  (item.productId
+                                    ? `Product ${String(item.productId).slice(-6).toUpperCase()}`
+                                    : "Product")}
+                              </p>
+                              <p className="text-[10px] text-[var(--text-secondary)] font-medium">
+                                Qty: {formatNumber(item.quantity || 1)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+
+                        {items.length > 3 && (
+                          <p className="text-[10px] font-bold text-[var(--color-burgundy)]/80 text-center pt-1">
+                            + {formatNumber(items.length - 3)} more items
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

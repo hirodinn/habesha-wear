@@ -10,11 +10,27 @@ import { validateId } from "../utils/validateId.js";
 
 const router = express.Router();
 
+function buildProductQuery(q, category) {
+  const query = {};
+
+  if (q && q.trim()) {
+    const regex = new RegExp(q.trim(), "i");
+    query.$or = [{ name: regex }, { description: regex }, { category: regex }];
+  }
+
+  if (category && category.trim() && category !== "all") {
+    query.category = new RegExp(`^${category.trim()}$`, "i");
+  }
+
+  return query;
+}
+
 // Top-rated featured products (e.g. limit=3)
 router.get("/featured", async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit, 10) || 3, 10);
-    const products = await Product.find()
+    const query = buildProductQuery(req.query.q, req.query.category);
+    const products = await Product.find(query)
       .sort({ ratingAverage: -1, ratingCount: -1 })
       .limit(limit)
       .lean();
@@ -26,6 +42,7 @@ router.get("/featured", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
+    const baseQuery = buildProductQuery(req.query.q, req.query.category);
     const excludeFeatured = req.query.excludeFeatured === "1";
     const pageParam = req.query.page;
     const limitParam = req.query.limit;
@@ -34,14 +51,17 @@ router.get("/", async (req, res) => {
     if (usePagination) {
       const page = Math.max(1, parseInt(req.query.page, 10) || 1);
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 12));
-      let query = {};
+      let query = { ...baseQuery };
       if (excludeFeatured) {
-        const featured = await Product.find()
+        const featured = await Product.find(baseQuery)
           .sort({ ratingAverage: -1, ratingCount: -1 })
           .limit(3)
           .select("_id")
           .lean();
-        query = { _id: { $nin: featured.map((p) => p._id) } };
+        query = {
+          ...query,
+          _id: { $nin: featured.map((p) => p._id) },
+        };
       }
       const skip = (page - 1) * limit;
       const [products, total] = await Promise.all([
@@ -55,7 +75,9 @@ router.get("/", async (req, res) => {
       return res.json({ products, total, page, limit, totalPages: Math.ceil(total / limit) });
     }
 
-    const products = await Product.find().sort({ ratingAverage: -1 }).lean();
+    const products = await Product.find(baseQuery)
+      .sort({ ratingAverage: -1 })
+      .lean();
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });

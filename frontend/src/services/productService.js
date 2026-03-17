@@ -3,13 +3,24 @@ import axios from "axios";
 const API_URL = "/api/products";
 
 const productService = {
-  fetchFeatured: async (limit = 3) => {
-    const response = await axios.get(`${API_URL}/featured?limit=${limit}`);
+  fetchFeatured: async (limit = 3, query = "", category = "all") => {
+    const params = new URLSearchParams({ limit });
+    if (query?.trim()) params.set("q", query.trim());
+    if (category && category !== "all") params.set("category", category);
+    const response = await axios.get(`${API_URL}/featured?${params}`);
     return response.data;
   },
-  fetchProductsPaginated: async (page = 1, limit = 12, excludeFeatured = false) => {
+  fetchProductsPaginated: async (
+    page = 1,
+    limit = 12,
+    excludeFeatured = false,
+    query = "",
+    category = "all"
+  ) => {
     const params = new URLSearchParams({ page, limit });
     if (excludeFeatured) params.set("excludeFeatured", "1");
+    if (query?.trim()) params.set("q", query.trim());
+    if (category && category !== "all") params.set("category", category);
     const response = await axios.get(`${API_URL}?${params}`);
     return response.data;
   },
