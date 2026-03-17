@@ -38,7 +38,7 @@ const Header = () => {
             <Store size={18} aria-hidden />
             <span className="hidden sm:inline">Shop</span>
           </Link>
-          {user?.role !== "admin" && user?.role !== "owner" && (
+          {user?.role === "customer" && (
             <Link to="/cart" className={`${navLinkClass("/cart")} relative`}>
               <ShoppingCart size={18} aria-hidden />
               <span className="hidden sm:inline">Cart</span>

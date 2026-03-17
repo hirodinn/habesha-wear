@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import productService from "../../../services/productService";
 import ProductImageCarousel from "../../../components/shop/ProductImageCarousel";
 import {
@@ -24,10 +25,21 @@ const TAB_LIVE = "live";
 const TAB_SUBMISSIONS = "submissions";
 
 const VendorView = () => {
+  const { user } = useSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState(TAB_LIVE);
   const [preProducts, setPreProducts] = useState([]);
   const [vendorProducts, setVendorProducts] = useState([]);
   const [loadingVendorProducts, setLoadingVendorProducts] = useState(true);
+
+  /** Only products owned by the current vendor (frontend filter in case backend cookie is missing). */
+  const myLiveProducts = useMemo(() => {
+    if (!user?.id && !user?._id) return vendorProducts;
+    const id = String(user.id ?? user._id);
+    return vendorProducts.filter((p) => {
+      const ownerId = p.ownedBy ? String(p.ownedBy._id ?? p.ownedBy) : "";
+      return ownerId === id;
+    });
+  }, [vendorProducts, user]);
   const [showForm, setShowForm] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -279,11 +291,11 @@ const VendorView = () => {
             }`}
           >
             <Store size={18} />
-            Live in shop
+            My live products
             <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
               activeTab === TAB_LIVE ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
             }`}>
-              {vendorProducts.length}
+              {myLiveProducts.length}
             </span>
           </button>
           <button
@@ -306,16 +318,16 @@ const VendorView = () => {
         </div>
       </div>
 
-      {/* Tab content: Live in shop */}
+      {/* Tab content: My live products (vendor-owned only) */}
       {activeTab === TAB_LIVE && (
         <div className="animate-fade-in">
           {loadingVendorProducts ? (
             <div className="flex items-center justify-center py-20 rounded-2xl bg-(--bg-card) border border-(--border-color)">
               <Loader2 className="w-10 h-10 text-[var(--color-burgundy)] animate-spin" />
             </div>
-          ) : vendorProducts.length > 0 ? (
+          ) : myLiveProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {vendorProducts.map((product) => (
+              {myLiveProducts.map((product) => (
                 <div
                   key={product._id}
                   className="group rounded-2xl border border-(--border-color) bg-(--bg-card) overflow-hidden hover:shadow-xl hover:shadow-[var(--color-burgundy)]/5 hover:border-[var(--color-burgundy)]/20 transition-all duration-300"
@@ -367,7 +379,7 @@ const VendorView = () => {
             <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
               <Store className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
               <p className="text-(--text-main) font-semibold mb-1">No products live yet</p>
-              <p className="text-(--text-secondary) text-sm mb-4">Submit items for approval to see them here.</p>
+              <p className="text-(--text-secondary) text-sm mb-4">Products you own appear here after approval. Submit items for review to get started.</p>
               <button
                 type="button"
                 onClick={() => { setShowForm(true); setActiveTab(TAB_SUBMISSIONS); }}

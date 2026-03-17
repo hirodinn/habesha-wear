@@ -40,7 +40,7 @@ const ProductImageCarousel = ({
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
         {list.map((src, i) => (
-          <div key={i} className="flex-shrink-0 w-full h-full">
+          <div key={i} className="flex-shrink-0 w-full h-full overflow-hidden">
             <img
               src={src}
               alt={`${alt} ${i + 1}`}

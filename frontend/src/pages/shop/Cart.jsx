@@ -23,7 +23,7 @@ const Cart = () => {
 
   useEffect(() => {
     if (user) {
-      if (user.role === "vendor") {
+      if (user.role !== "customer") {
         navigate("/dashboard");
         return;
       }
@@ -47,6 +47,9 @@ const Cart = () => {
     navigate("/checkout");
   };
 
+  if (user && user.role !== "customer") {
+    return null;
+  }
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in">
@@ -55,7 +58,7 @@ const Cart = () => {
         </div>
         <h2 className="font-display text-3xl font-bold mb-4 text-[var(--text-main)]">Your cart is empty</h2>
         <p className="text-[var(--text-secondary)] mb-8 max-w-md">
-          Please log in to see your saved items and start shopping our unique Habesha collection.
+          Please log in as a customer to see your cart and checkout.
         </p>
         <Link to="/login" className="btn-primary">
           Sign In to Shop
