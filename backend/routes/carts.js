@@ -19,10 +19,14 @@ router.get("/", async (req, res) => {
 
   try {
     if (decoded.role === "admin" || decoded.role === "owner") {
-      const carts = await Cart.find();
+      const carts = await Cart.find()
+        .populate("userId", "name email")
+        .populate("products.productId", "name images price category");
       return res.send(carts);
     } else if (decoded.role === "customer") {
-      const carts = await Cart.find({ userId: decoded._id });
+      const carts = await Cart.find({ userId: decoded._id })
+        .populate("userId", "name email")
+        .populate("products.productId", "name images price category");
       return res.send(carts);
     } else {
       return res

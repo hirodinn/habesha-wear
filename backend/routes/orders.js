@@ -23,10 +23,14 @@ router.get("/", async (req, res) => {
 
   try {
     if (decoded.role === "admin" || decoded.role === "owner") {
-      const orders = await Order.find();
+      const orders = await Order.find()
+        .populate("userId", "name email")
+        .populate("products.productId", "name images price category");
       res.send(orders);
     } else if (decoded.role === "customer") {
-      const orders = await Order.find({ userId: decoded._id });
+      const orders = await Order.find({ userId: decoded._id })
+        .populate("userId", "name email")
+        .populate("products.productId", "name images price category");
       res.send(orders);
     }
   } catch (err) {
