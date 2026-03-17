@@ -13,6 +13,7 @@ import {
 const AdminProductsView = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [usersById, setUsersById] = useState({});
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,6 +30,23 @@ const AdminProductsView = () => {
 
   useEffect(() => {
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("/api/users");
+        const list = Array.isArray(response.data) ? response.data : [];
+        const map = list.reduce((acc, u) => {
+          if (u?._id) acc[String(u._id)] = u;
+          return acc;
+        }, {});
+        setUsersById(map);
+      } catch {
+        setUsersById({});
+      }
+    };
+    fetchUsers();
   }, []);
 
   const handleDeleteProduct = async (product) => {
@@ -91,6 +109,28 @@ const AdminProductsView = () => {
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getOwnerId = (product) => {
+    const owner = product?.ownedBy;
+    if (!owner) return "N/A";
+    if (typeof owner === "string") return owner;
+    return String(owner._id || owner.id || "N/A");
+  };
+
+  const getOwnerName = (product) => {
+    const owner = product?.ownedBy;
+    if (typeof owner === "object" && owner?.name) return owner.name;
+    const id = getOwnerId(product);
+    if (id && usersById[id]?.name) return usersById[id].name;
+    return "Unknown Vendor";
+  };
+
+  const getOwnerEmail = (product) => {
+    const owner = product?.ownedBy;
+    if (typeof owner === "object" && owner?.email) return owner.email;
+    const id = getOwnerId(product);
+    return usersById[id]?.email || "N/A";
+  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
@@ -293,21 +333,42 @@ const AdminProductsView = () => {
                             <p className="text-sm text-(--text-main) leading-relaxed">
                               {product.description}
                             </p>
-                            <div className="pt-4 flex gap-4">
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
-                                  Product ID
-                                </span>
-                                <span className="font-mono text-xs text-(--text-main)">
-                                  {product._id}
-                                </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color) sm:col-span-2">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Product Name</span>
+                                <span className="text-sm font-semibold text-(--text-main)">{product.name}</span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color) sm:col-span-2">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Product ID</span>
+                                <span className="font-mono text-xs text-(--text-main)">{product._id}</span>
                               </div>
                               <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
-                                  Vendor ID
-                                </span>
-                                <span className="font-mono text-xs text-(--text-main)">
-                                  {product.ownedBy || "N/A"}
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Vendor</span>
+                                <span className="text-sm font-semibold text-(--text-main)">{getOwnerName(product)}</span>
+                                <span className="block font-mono text-[10px] text-(--text-secondary) mt-0.5">{getOwnerId(product)}</span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Vendor Email</span>
+                                <span className="text-xs text-(--text-main) break-all">{getOwnerEmail(product)}</span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Price</span>
+                                <span className="text-sm font-semibold text-(--text-main)">{Number(product.price || 0).toLocaleString()} Birr</span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Stock</span>
+                                <span className="text-sm font-semibold text-(--text-main)">{product.stock ?? 0}</span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Status</span>
+                                <span className="text-sm font-semibold text-(--text-main)">{product.status || "active"}</span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Rating</span>
+                                <span className="text-sm font-semibold text-(--text-main)">
+                                  {product.ratingCount > 0
+                                    ? `${Number(product.ratingAverage || 0).toFixed(1)} (${product.ratingCount})`
+                                    : "No ratings"}
                                 </span>
                               </div>
                             </div>

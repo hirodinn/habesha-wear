@@ -1,13 +1,15 @@
 import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, Search } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Search, Trash2, AlertCircle } from "lucide-react";
 
 const AdminCartsView = () => {
   const navigate = useNavigate();
   const [carts, setCarts] = useState([]);
   const [usersById, setUsersById] = useState({});
   const [productsById, setProductsById] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [actionMessage, setActionMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCartId, setExpandedCartId] = useState(null);
 
@@ -88,6 +90,34 @@ const AdminCartsView = () => {
     return null;
   };
 
+  const handleDeleteCart = async (cart) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete cart "${cart._id}"? This action is permanent.`
+      )
+    ) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.delete(`/api/carts/${cart._id}`);
+      setActionMessage({
+        type: "success",
+        text: `Cart ${cart._id} deleted permanently.`,
+      });
+      if (expandedCartId === cart._id) setExpandedCartId(null);
+      fetchCarts();
+    } catch (error) {
+      setActionMessage({
+        type: "error",
+        text: error.response?.data?.message || "Failed to delete cart.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -124,6 +154,19 @@ const AdminCartsView = () => {
           />
         </div>
       </div>
+
+      {actionMessage && (
+        <div
+          className={`p-4 rounded-xl border flex items-center gap-3 animate-slide-up ${
+            actionMessage.type === "success"
+              ? "bg-green-100 dark:bg-green-900/10 border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-300"
+              : "bg-red-100 dark:bg-red-900/10 border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300"
+          }`}
+        >
+          <AlertCircle size={20} />
+          {actionMessage.text}
+        </div>
+      )}
 
       <div className="card-standard overflow-hidden bg-(--bg-card)">
         <div className="overflow-x-auto">
@@ -190,7 +233,20 @@ const AdminCartsView = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-[11px] text-(--text-secondary)">Double-click row</span>
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCart(cart);
+                          }}
+                          disabled={loading}
+                          className="p-1.5 text-(--text-secondary) hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all cursor-pointer"
+                          title="Hard Delete Cart"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   {expandedCartId === cart._id && (
@@ -240,8 +296,8 @@ const AdminCartsView = () => {
                                       </div>
                                     )}
                                     <div className="min-w-0">
-                                      <p className="text-sm text-(--text-main) font-semibold truncate">
-                                        {name}
+                                      <p className="text-sm text-(--text-main) truncate">
+                                        <span className="font-semibold">Product:</span> {name}
                                       </p>
                                       <p className="text-xs text-(--text-secondary)">
                                         Quantity: <span className="font-semibold">{item.quantity}</span>

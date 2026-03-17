@@ -272,6 +272,11 @@ const VendorView = () => {
           {[
             { value: "all", label: "All", count: myProducts.length },
             {
+              value: "active",
+              label: "Active",
+              count: myProducts.filter((p) => normalizeStatus(p.status) === "active").length,
+            },
+            {
               value: "pending",
               label: "Pending",
               count: myProducts.filter((p) => normalizeStatus(p.status) === "pending").length,

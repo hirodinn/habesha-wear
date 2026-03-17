@@ -209,15 +209,31 @@ const ProductDetail = () => {
                   className="p-1 disabled:opacity-50"
                   title={`Rate ${value} star${value > 1 ? "s" : ""}`}
                 >
-                  <Star
-                    size={22}
-                    className={
-                      value <= Math.round(ratingAverage)
-                        ? "text-[var(--color-burgundy)]"
-                        : "text-[var(--border-color)]"
-                    }
-                    fill={value <= Math.round(ratingAverage) ? "currentColor" : "none"}
-                  />
+                  {(() => {
+                    const fillRatio = Math.max(
+                      0,
+                      Math.min(1, ratingAverage - (value - 1))
+                    );
+                    return (
+                      <span className="relative block w-[22px] h-[22px]">
+                        <Star
+                          size={22}
+                          className="absolute inset-0 text-[var(--border-color)]"
+                          fill="none"
+                        />
+                        <span
+                          className="absolute inset-0 overflow-hidden"
+                          style={{ width: `${fillRatio * 100}%` }}
+                        >
+                          <Star
+                            size={22}
+                            className="text-[var(--color-burgundy)]"
+                            fill="currentColor"
+                          />
+                        </span>
+                      </span>
+                    );
+                  })()}
                 </button>
               ))}
               {ratingLoading && <Loader2 size={16} className="ml-1 animate-spin" />}
@@ -230,7 +246,11 @@ const ProductDetail = () => {
           <div className="flex items-center gap-3 pt-4">
             <button
               onClick={handleAddToCart}
-              disabled={addingToCart || product.stock <= 0 || user?.role === "vendor"}
+              disabled={
+                addingToCart ||
+                product.stock <= 0 ||
+                (user && user.role !== "customer")
+              }
               className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
             >
               {addingToCart ? (
@@ -256,7 +276,7 @@ const ProductDetail = () => {
 
           {user?.role !== "customer" && (
             <div className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
-              <CheckCircle2 size={14} /> Login as customer to submit rating.
+              <CheckCircle2 size={14} /> Login as customer to purchase and rate products
             </div>
           )}
         </div>

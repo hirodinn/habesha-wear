@@ -108,6 +108,40 @@ router.delete("/", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  res.set({
+    "Cache-Control": "no-store",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
+
+  const token = req.cookies.token;
+  if (!token)
+    return res.status(401).json({ success: false, message: "Access Denied" });
+
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  if (decoded.role !== "admin" && decoded.role !== "owner") {
+    return res
+      .status(403)
+      .json({ success: false, message: "Only admins/owners can delete carts" });
+  }
+
+  const { error } = validateId(req.params.id);
+  if (error)
+    return res
+      .status(400)
+      .json({ success: false, message: error.details[0].message });
+
+  try {
+    const cart = await Cart.findByIdAndDelete(req.params.id);
+    if (!cart)
+      return res.status(404).json({ success: false, message: "Cart not found" });
+    return res.send(cart);
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 router.put("/", async (req, res) => {
   res.set({
     "Cache-Control": "no-store",

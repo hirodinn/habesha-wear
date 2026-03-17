@@ -82,7 +82,7 @@ const ProductCard = ({
             <Tag size={10} /> {product.category || "Item"}
           </span>
         </div>
-        {(!user || user.role !== "vendor") && (
+        {user?.role === "customer" && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -141,15 +141,31 @@ const ProductCard = ({
                   title={`Rate ${value} star${value > 1 ? "s" : ""}`}
                   aria-label={`Rate ${value} star${value > 1 ? "s" : ""}`}
                 >
-                  <Star
-                    size={18}
-                    className={
-                      value <= Math.round(ratingAverage)
-                        ? "text-[var(--color-burgundy)]"
-                        : "text-[var(--border-color)]"
-                    }
-                    fill={value <= Math.round(ratingAverage) ? "currentColor" : "none"}
-                  />
+                  {(() => {
+                    const fillRatio = Math.max(
+                      0,
+                      Math.min(1, ratingAverage - (value - 1))
+                    );
+                    return (
+                      <span className="relative block w-[18px] h-[18px]">
+                        <Star
+                          size={18}
+                          className="absolute inset-0 text-[var(--border-color)]"
+                          fill="none"
+                        />
+                        <span
+                          className="absolute inset-0 overflow-hidden"
+                          style={{ width: `${fillRatio * 100}%` }}
+                        >
+                          <Star
+                            size={18}
+                            className="text-[var(--color-burgundy)]"
+                            fill="currentColor"
+                          />
+                        </span>
+                      </span>
+                    );
+                  })()}
                 </button>
               ))}
               {ratingLoadingId === product._id && (
@@ -234,7 +250,7 @@ const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadi
           <span className="font-bold text-white text-lg">
             {formatNumber(product.price)} Birr
           </span>
-          {(!user || user.role !== "vendor") && (
+          {user?.role === "customer" && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -515,14 +531,10 @@ const ProductGrid = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                       <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
-                        {(!user || user.role !== "vendor") && (
+                        {user?.role === "customer" && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (!user) {
-                                navigate("/login");
-                                return;
-                              }
                               handleAddToCart(product);
                             }}
                             disabled={addingToCart === product._id || product.stock <= 0}
@@ -544,15 +556,31 @@ const ProductGrid = () => {
                       <div className="mb-2 flex items-center gap-2">
                         <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((s) => (
-                            <Star
-                              key={s}
-                              size={14}
-                              className={
-                                s <= Math.round(ratingAverage)
-                                  ? "fill-[var(--color-burgundy)] text-[var(--color-burgundy)]"
-                                  : "fill-transparent text-[var(--border-color)]"
-                              }
-                            />
+                            (() => {
+                              const fillRatio = Math.max(
+                                0,
+                                Math.min(1, ratingAverage - (s - 1))
+                              );
+                              return (
+                                <span key={s} className="relative block w-[14px] h-[14px]">
+                                  <Star
+                                    size={14}
+                                    className="absolute inset-0 text-[var(--border-color)]"
+                                    fill="none"
+                                  />
+                                  <span
+                                    className="absolute inset-0 overflow-hidden"
+                                    style={{ width: `${fillRatio * 100}%` }}
+                                  >
+                                    <Star
+                                      size={14}
+                                      className="text-[var(--color-burgundy)]"
+                                      fill="currentColor"
+                                    />
+                                  </span>
+                                </span>
+                              );
+                            })()
                           ))}
                         </div>
                         <span className="text-xs font-semibold text-[var(--text-main)]">
