@@ -8,33 +8,20 @@ export const getCart = createAsyncThunk(
     try {
       const data = await cartService.fetchCart();
       const cart = Array.isArray(data) ? data[0] : data;
+            console.log(cart)
 
       if (!cart || !cart.products) return cart;
 
       // Populate product details for each item
-      const populatedProducts = await Promise.all(
-        cart.products.map(async (item) => {
-          try {
-            const productDetails = await productService.fetchProductById(
-              item.productId
-            );
-            return {
-              ...item,
-              ...productDetails, // Spread details (includes name, price, etc.)
-            };
-          } catch (err) {
-            console.error(
-              `Failed to fetch details for product ${item.productId}:`,
-              err
-            );
-            return item;
-          }
-        })
-      );
+      const populatedProducts = cart.products.map((item) => {
+        const details = item.productId;
+        details.productId = item.productId._id;
+        details.quantity = item.quantity;
+        return item.productId;
+      });
 
       return {
-        ...cart,
-        products: populatedProducts,
+        ...cart, products: populatedProducts
       };
     } catch (err) {
       return rejectWithValue(err.response.data);
@@ -67,6 +54,7 @@ export const updateItemQuantity = createAsyncThunk(
   "cart/updateItem",
   async ({ productId, quantity }, { rejectWithValue }) => {
     try {
+      console.log("Updating cart item:", { productId, quantity });
       const cart = await cartService.updateCartItem(productId, quantity);
 
       // Populate details
@@ -129,6 +117,7 @@ const cartSlice = createSlice({
       .addCase(getCart.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload?.products || [];
+        console.log("Cart items after getCart:", action.payload.products);
       })
       .addCase(getCart.rejected, (state, action) => {
         state.loading = false;

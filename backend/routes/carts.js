@@ -166,8 +166,14 @@ router.put("/", async (req, res) => {
       if (!cart) {
         cart = new Cart({ userId: decoded._id, products: [] });
       }
-      cart.products = req.body.products;
+      const index = cart.products.indexOf(req.body.productId);
+      if(index > -1){
+        cart.products[index].quantity = req.body.quantity;
+      }else{
+        cart.products.push({productId: req.body.productId, quantity: req.body.quantity})
+      }
       await cart.save();
+      await cart.populate("products.productId", "name images price category");
       res.send(cart);
     } else {
       res.status(400).json({ success: false, message: "user not verified" });

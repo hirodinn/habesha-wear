@@ -168,6 +168,20 @@ const AdminOrdersView = () => {
     }
   };
 
+  const formatShippingAddress = (address) => {
+    if (!address) return null;
+
+    const name = [address.firstName, address.lastName].filter(Boolean).join(" ").trim();
+    return {
+      name: name || "N/A",
+      phone: address.phone || "N/A",
+      email: address.email || "N/A",
+      addressLine: address.addressLine || "N/A",
+      city: address.city || "N/A",
+      postalCode: address.postalCode || "N/A",
+    };
+  };
+
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -241,7 +255,9 @@ const AdminOrdersView = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-(--border-color)">
-              {filteredOrders.map((order) => (
+              {filteredOrders.map((order) => {
+                const shippingAddress = formatShippingAddress(order.shippingAddress);
+                return (
                 <Fragment key={order._id}>
                   <tr
                     onDoubleClick={() =>
@@ -345,6 +361,45 @@ const AdminOrdersView = () => {
                                 ? new Date(order.deliveredDate).toLocaleString()
                                 : "N/A"}
                             </p>
+                            {order.shippingAddress && (
+                              <>
+                                <h4 className="pt-2 text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
+                                  Shipping Address
+                                </h4>
+                                <p className="text-sm text-(--text-main)">
+                                  <span className="font-semibold">Name:</span>{" "}
+                                  {shippingAddress?.name || "N/A"}
+                                </p>
+                                <p className="text-sm text-(--text-main)">
+                                  <span className="font-semibold">Phone:</span>{" "}
+                                  {shippingAddress?.phone || "N/A"}
+                                </p>
+                                <p className="text-sm text-(--text-main)">
+                                  <span className="font-semibold">Email:</span>{" "}
+                                  {shippingAddress?.email || "N/A"}
+                                </p>
+                                <p className="text-sm text-(--text-main)">
+                                  <span className="font-semibold">Address:</span>{" "}
+                                  {shippingAddress?.addressLine || "N/A"}
+                                </p>
+                                <p className="text-sm text-(--text-main)">
+                                  <span className="font-semibold">City:</span>{" "}
+                                  {shippingAddress?.city || "N/A"}
+                                </p>
+                                <p className="text-sm text-(--text-main)">
+                                  <span className="font-semibold">Postal Code:</span>{" "}
+                                  {shippingAddress?.postalCode || "N/A"}
+                                </p>
+                              </>
+                            )}
+                            <p className="text-sm text-(--text-main)">
+                              <span className="font-semibold">Delivery Method:</span>{" "}
+                              {order.deliveryMethod || "standard"}
+                            </p>
+                            <p className="text-sm text-(--text-main)">
+                              <span className="font-semibold">Payment Method:</span>{" "}
+                              {order.paymentMethod || "chapa"}
+                            </p>
                           </div>
 
                           <div className="space-y-3">
@@ -403,7 +458,8 @@ const AdminOrdersView = () => {
                     </tr>
                   )}
                 </Fragment>
-              ))}
+                );
+              })}
               {filteredOrders.length === 0 && (
                 <tr>
                   <td colSpan="5" className="px-6 py-20 text-center">

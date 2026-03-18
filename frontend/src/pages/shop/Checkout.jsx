@@ -16,6 +16,18 @@ const Checkout = () => {
   const [message, setMessage] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState("chapa");
+  const [shippingAddress, setShippingAddress] = useState(() => {
+    const nameParts = (user?.name || "").trim().split(/\s+/).filter(Boolean);
+    return {
+      firstName: nameParts[0] || "",
+      lastName: nameParts.slice(1).join(" "),
+      phone: "",
+      email: user?.email || "",
+      addressLine: "",
+      city: "",
+      postalCode: "",
+    };
+  });
 
   const subtotal = useMemo(
     () => cartItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0),
@@ -25,6 +37,10 @@ const Checkout = () => {
   const total = subtotal + shipping;
 
   const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
+
+  const handleAddressChange = (field, value) => {
+    setShippingAddress((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -48,9 +64,22 @@ const Checkout = () => {
         quantity: p.quantity,
       }));
 
+      const cleanedAddress = {
+        firstName: shippingAddress.firstName.trim(),
+        lastName: shippingAddress.lastName.trim(),
+        phone: shippingAddress.phone.trim(),
+        email: shippingAddress.email.trim(),
+        addressLine: shippingAddress.addressLine.trim(),
+        city: shippingAddress.city.trim(),
+        postalCode: shippingAddress.postalCode.trim(),
+      };
+
       await orderService.postOrders({
         products: orderProducts,
         totalAmount: total,
+        shippingAddress: cleanedAddress,
+        deliveryMethod,
+        paymentMethod,
       });
 
       await removeCart();
@@ -89,13 +118,56 @@ const Checkout = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-display font-semibold text-[var(--text-main)]">Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input className="input-field" placeholder="First name" required />
-              <input className="input-field" placeholder="Last name" required />
-              <input className="input-field" placeholder="Phone number" required />
-              <input className="input-field" placeholder="Email" type="email" required />
-              <input className="input-field md:col-span-2" placeholder="Address" required />
-              <input className="input-field" placeholder="City" required />
-              <input className="input-field" placeholder="Zip / Postal code" required />
+              <input
+                className="input-field"
+                placeholder="First name"
+                value={shippingAddress.firstName}
+                onChange={(e) => handleAddressChange("firstName", e.target.value)}
+                required
+              />
+              <input
+                className="input-field"
+                placeholder="Last name"
+                value={shippingAddress.lastName}
+                onChange={(e) => handleAddressChange("lastName", e.target.value)}
+                required
+              />
+              <input
+                className="input-field"
+                placeholder="Phone number"
+                value={shippingAddress.phone}
+                onChange={(e) => handleAddressChange("phone", e.target.value)}
+                required
+              />
+              <input
+                className="input-field"
+                placeholder="Email"
+                type="email"
+                value={shippingAddress.email}
+                onChange={(e) => handleAddressChange("email", e.target.value)}
+                required
+              />
+              <input
+                className="input-field md:col-span-2"
+                placeholder="Address"
+                value={shippingAddress.addressLine}
+                onChange={(e) => handleAddressChange("addressLine", e.target.value)}
+                required
+              />
+              <input
+                className="input-field"
+                placeholder="City"
+                value={shippingAddress.city}
+                onChange={(e) => handleAddressChange("city", e.target.value)}
+                required
+              />
+              <input
+                className="input-field"
+                placeholder="Zip / Postal code"
+                value={shippingAddress.postalCode}
+                onChange={(e) => handleAddressChange("postalCode", e.target.value)}
+                required
+              />
             </div>
           </section>
 
