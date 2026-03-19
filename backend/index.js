@@ -11,5 +11,8 @@ const PORT = Number(process.env.PORT || 3000);
 Joi.objectId = joi(Joi);
 
 loadDB();
+app.get("/health", (_req, res) => {
+	res.status(200).json({ status: "ok" });
+});
 loadRoutes(app);
 app.listen(PORT, () => console.log(`connected to port ${PORT}...`));
