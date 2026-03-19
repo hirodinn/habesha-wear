@@ -70,6 +70,40 @@ const CustomerView = () => {
     return Array.isArray(items) ? items : [];
   };
 
+  const getOrderItemName = (item) => {
+    if (item?.productName) return item.productName;
+
+    const product = item?.productId;
+    if (product && typeof product === "object") {
+      if (product.name) return product.name;
+      const productObjectId = product._id || product.id;
+      if (productObjectId) {
+        return `Product ${String(productObjectId).slice(-6).toUpperCase()}`;
+      }
+      return "Product";
+    }
+
+    if (typeof product === "string") {
+      return `Product ${String(product).slice(-6).toUpperCase()}`;
+    }
+
+    return "Product";
+  };
+
+  const getOrderItemImage = (item) => {
+    if (item?.image) return item.image;
+    if (Array.isArray(item?.images) && item.images.length > 0) return item.images[0];
+
+    const product = item?.productId;
+    if (product && typeof product === "object") {
+      if (Array.isArray(product.images) && product.images.length > 0) {
+        return product.images[0];
+      }
+    }
+
+    return null;
+  };
+
   const totalSpent = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
   if (loading) {
@@ -216,12 +250,22 @@ const CustomerView = () => {
                               key={idx}
                               className="flex items-center justify-between gap-3 px-2 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]"
                             >
-                              <p className="text-[12px] font-semibold text-[var(--text-main)] truncate">
-                                {item.productName ||
-                                  (item.productId
-                                    ? `Product ${String(item.productId).slice(-6).toUpperCase()}`
-                                    : "Product")}
-                              </p>
+                              <div className="flex min-w-0 items-center gap-3">
+                                {getOrderItemImage(item) ? (
+                                  <img
+                                    src={getOrderItemImage(item)}
+                                    alt={getOrderItemName(item)}
+                                    className="h-9 w-9 rounded-lg object-cover border border-[var(--border-color)]"
+                                  />
+                                ) : (
+                                  <div className="h-9 w-9 rounded-lg bg-[var(--bg-main)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-secondary)]">
+                                    <ShoppingBag size={14} />
+                                  </div>
+                                )}
+                                <p className="text-[12px] font-semibold text-[var(--text-main)] truncate">
+                                  {getOrderItemName(item)}
+                                </p>
+                              </div>
                               <p className="text-[11px] text-[var(--text-secondary)] whitespace-nowrap">
                                 x{formatNumber(item.quantity || 1)}
                               </p>
