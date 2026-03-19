@@ -4,38 +4,11 @@ import {
   validateNewProduct,
   validateProductUpdate,
   validateProductRating,
-  validateProductStatusUpdate,
 } from "../model/product.js";
 import jwt from "jsonwebtoken";
 import { validateId } from "../utils/validateId.js";
-import upload from "../middleware/upload.js";
-import cloudinary from "../config/cloudinary.js";
 
 const router = express.Router();
-
-function getDecodedToken(req) {
-  const token = req.cookies?.token;
-  if (!token) return null;
-  try {
-    return jwt.verify(token, process.env.JWT_PRIVATE_KEY);
-  } catch (_) {
-    return null;
-  }
-}
-
-function getVisibilityFilter(req, { includeMine = false } = {}) {
-  const decoded = getDecodedToken(req);
-  const isAdmin = decoded?.role === "admin" || decoded?.role === "owner";
-  const isVendor = decoded?.role === "vendor";
-
-  if (isAdmin) return {};
-
-  if (isVendor && includeMine && decoded?._id) {
-    return { ownedBy: decoded._id };
-  }
-
-  return { status: { $in: ["active", null] } };
-}
 
 function buildProductQuery(q, category) {
   const query = {};
@@ -56,14 +29,7 @@ function buildProductQuery(q, category) {
 router.get("/featured", async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit, 10) || 3, 10);
-    const visibilityFilter =
-      req.query.scope === "shop"
-        ? { status: { $in: ["active", null] } }
-        : getVisibilityFilter(req);
-    const query = {
-      ...buildProductQuery(req.query.q, req.query.category),
-      ...visibilityFilter,
-    };
+    const query = buildProductQuery(req.query.q, req.query.category);
     const products = await Product.find(query)
       .sort({ ratingAverage: -1, ratingCount: -1 })
       .limit(limit)
@@ -76,34 +42,15 @@ router.get("/featured", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const decoded = getDecodedToken(req);
-    const isAdmin = decoded?.role === "admin" || decoded?.role === "owner";
-    const includeMine = req.query.mine === "1";
-    const visibilityFilter =
-      req.query.scope === "shop"
-        ? { status: { $in: ["active", null] } }
-        : getVisibilityFilter(req, { includeMine });
-    let baseQuery = {
-      ...buildProductQuery(req.query.q, req.query.category),
-      ...visibilityFilter,
-    };
-
-    if (req.query.status) {
-      const requestedStatus = String(req.query.status).toLowerCase();
-      const allowed = ["pending", "active", "archived"];
-      if (!allowed.includes(requestedStatus)) {
-        return res.status(400).json({ success: false, message: "Invalid status filter" });
-      }
-
-      if (!isAdmin && !(decoded?.role === "vendor" && includeMine)) {
-        return res
-          .status(403)
-          .json({ success: false, message: "Not allowed to filter by status" });
-      }
-
-      baseQuery.status = requestedStatus;
+    let baseQuery = buildProductQuery(req.query.q, req.query.category);
+    if (req.query.mine === "1" && req.cookies?.token) {
+      try {
+        const decoded = jwt.verify(req.cookies.token, process.env.JWT_PRIVATE_KEY);
+        if (decoded.role === "vendor" && decoded._id) {
+          baseQuery = { ...baseQuery, ownedBy: decoded._id };
+        }
+      } catch (_) {}
     }
-
     const excludeFeatured = req.query.excludeFeatured === "1";
     const pageParam = req.query.page;
     const limitParam = req.query.limit;
@@ -147,33 +94,18 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   const { error } = validateId(req.params.id);
-  if (error) res.status(400).json({ message: error.details[0].message });
+  if (error) return res.status(400).json({ message: error.details[0].message });
 
   try {
-    const decoded = getDecodedToken(req);
     const product = await Product.findOne({ _id: req.params.id });
-    if (!product) {
-      return res.status(404).json({ success: false, message: "Product Not Found" });
-    }
-
-    const isAdmin = decoded?.role === "admin" || decoded?.role === "owner";
-    const isVendorOwner =
-      decoded?.role === "vendor" &&
-      decoded?._id &&
-      String(product.ownedBy) === String(decoded._id);
-    const isPublicVisible = !product.status || product.status === "active";
-
-    if (!isPublicVisible && !isAdmin && !isVendorOwner) {
-      return res.status(404).json({ success: false, message: "Product Not Found" });
-    }
-
-    res.send(product);
+    if (product) res.send(product);
+    else res.status(404).json({ success: false, message: "Product Not Found" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-router.post("/", upload.array("images", 5), async (req, res) => {
+router.post("/", async (req, res) => {
   res.set({
     "Cache-Control": "no-store",
     Pragma: "no-cache",
@@ -184,99 +116,21 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     return res.status(401).json({ success: false, message: "Access denied" });
 
   const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
-  if (decoded.role !== "admin" && decoded.role !== "owner" && decoded.role !== "vendor")
+  if (decoded.role !== "admin" && decoded.role !== "owner")
     return res.status(403).json({
       success: false,
-      message: "Only Admins, Owners, and Vendors are allowed to post products",
+      message: "Only Admins and Owners are allowed to post products",
     });
 
-  const obj = { ...req.body };
+  const { error } = validateNewProduct(req.body);
+  if (error) res.status(400).json({ message: error.details[0].message });
+
   try {
-    if (req.files && req.files.length > 0) {
-      const imageUrls = [];
-      for (const file of req.files) {
-        const uploadPromise = new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            {
-              folder: "habesha-wear/products",
-              resource_type: "image",
-              transformation: [{ quality: "auto", fetch_format: "auto" }],
-            },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result.secure_url);
-            }
-          );
-          stream.end(file.buffer);
-        });
-        const url = await uploadPromise;
-        imageUrls.push(url);
-      }
-      obj.images = imageUrls;
-    }
-
-    if (decoded.role === "vendor") {
-      obj.ownedBy = decoded._id;
-      obj.status = "pending";
-    } else {
-      if (!obj.ownedBy) obj.ownedBy = decoded._id;
-      if (!obj.status) obj.status = "active";
-    }
-
-    const { error } = validateNewProduct(obj);
-    if (error)
-      return res
-        .status(400)
-        .json({ success: false, message: error.details[0].message });
-
-    const product = new Product(obj);
+    const product = new Product(req.body);
     await product.save();
     res.send(product);
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
-});
-
-router.put("/:id/status", async (req, res) => {
-  res.set({
-    "Cache-Control": "no-store",
-    Pragma: "no-cache",
-    Expires: "0",
-  });
-
-  const token = req.cookies.token;
-  if (!token)
-    return res.status(401).json({ success: false, message: "Access denied" });
-
-  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
-  if (decoded.role !== "admin" && decoded.role !== "owner") {
-    return res.status(403).json({
-      success: false,
-      message: "Only Admins and Owners can change product status",
-    });
-  }
-
-  const { error: idError } = validateId(req.params.id);
-  if (idError)
-    return res.status(400).json({ success: false, message: idError.details[0].message });
-
-  const { error: statusError } = validateProductStatusUpdate(req.body);
-  if (statusError)
-    return res
-      .status(400)
-      .json({ success: false, message: statusError.details[0].message });
-
-  try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { status: req.body.status },
-      { new: true }
-    );
-    if (!product)
-      return res.status(404).json({ success: false, message: "Product Not Found" });
-    return res.send(product);
-  } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -318,14 +172,15 @@ router.put("/:id", async (req, res) => {
   if (!token)
     return res.status(401).json({ success: false, message: "Access denied" });
 
-  var { error } = validateId(req.params.id);
-  if (error) res.status(400).json({ message: error.details[0].message });
+  let err = validateId(req.params.id).error;
+  if (err) return res.status(400).json({ message: err.details[0].message });
 
-  var { error } = validateProductUpdate(req.body);
-  if (error) res.status(400).json({ message: error.details[0].message });
+  err = validateProductUpdate(req.body).error;
+  if (err) return res.status(400).json({ message: err.details[0].message });
 
   try {
     const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
     if (product.stock >= req.body.stock) {
       product.stock -= req.body.stock;
       product.save();

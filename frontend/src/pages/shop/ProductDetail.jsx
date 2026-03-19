@@ -28,6 +28,7 @@ const ProductDetail = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [ratingMessage, setRatingMessage] = useState("");
+  const [cartMessage, setCartMessage] = useState(null);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -53,10 +54,16 @@ const ProductDetail = () => {
     }
 
     setAddingToCart(true);
+    setCartMessage(null);
     try {
-      await dispatch(addItemToCart({ productId: product._id, quantity: 1 })).unwrap();
+      await dispatch(addItemToCart({ productId: String(product._id ?? product.id ?? ""), quantity: 1 })).unwrap();
+      setCartMessage({ type: "success", text: `${product.name} added to cart.` });
     } catch (err) {
       console.error("Failed to add to cart:", err);
+      setCartMessage({
+        type: "error",
+        text: err?.message || err?.response?.data?.message || "Could not add to cart.",
+      });
     } finally {
       setAddingToCart(false);
     }
@@ -273,6 +280,23 @@ const ProductDetail = () => {
                 : "Sold out"}
             </span>
           </div>
+
+          {cartMessage && (
+            <div
+              className={`rounded-xl border px-3 py-2 text-sm inline-flex items-center gap-2 ${
+                cartMessage.type === "success"
+                  ? "bg-green-50 border-green-200 text-green-700"
+                  : "bg-red-50 border-red-200 text-red-700"
+              }`}
+            >
+              {cartMessage.type === "success" ? (
+                <CheckCircle2 size={16} />
+              ) : (
+                <AlertCircle size={16} />
+              )}
+              {cartMessage.text}
+            </div>
+          )}
 
           {user?.role !== "customer" && (
             <div className="text-xs text-[var(--text-secondary)] flex items-center gap-2">

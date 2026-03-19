@@ -2,13 +2,21 @@ import axios from "axios";
 
 const API_URL = "/api/products";
 
+/** Normalize API response to product array (handles both array and { products } shape). */
+export const toProductList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.products)) return data.products;
+  return [];
+};
+
 const productService = {
   fetchFeatured: async (limit = 3, query = "", category = "all") => {
-    const params = new URLSearchParams({ limit, scope: "shop" });
+    const params = new URLSearchParams({ limit });
     if (query?.trim()) params.set("q", query.trim());
     if (category && category !== "all") params.set("category", category);
     const response = await axios.get(`${API_URL}/featured?${params}`);
-    return response.data;
+    const data = response.data;
+    return Array.isArray(data) ? data : (data?.products ?? []);
   },
   fetchProductsPaginated: async (
     page = 1,
@@ -17,23 +25,28 @@ const productService = {
     query = "",
     category = "all"
   ) => {
-    const params = new URLSearchParams({ page, limit, scope: "shop" });
+    const params = new URLSearchParams({ page, limit });
     if (excludeFeatured) params.set("excludeFeatured", "1");
     if (query?.trim()) params.set("q", query.trim());
     if (category && category !== "all") params.set("category", category);
     const response = await axios.get(`${API_URL}?${params}`);
-    return response.data;
+    const data = response.data;
+    return {
+      products: toProductList(data),
+      total: typeof data?.total === "number" ? data.total : (Array.isArray(data) ? data.length : 0),
+      page: typeof data?.page === "number" ? data.page : page,
+      limit: typeof data?.limit === "number" ? data.limit : limit,
+      totalPages: typeof data?.totalPages === "number" ? data.totalPages : 1,
+    };
   },
   fetchAllProducts: async () => {
-    const params = new URLSearchParams({ scope: "shop" });
-    const response = await axios.get(`${API_URL}?${params}`);
-    return response.data;
+    const response = await axios.get(API_URL);
+    return toProductList(response.data);
   },
   /** Same categories used for shop filter: unique from all products, sorted. */
   fetchCategories: async () => {
-    const all = await productService.fetchAllProducts();
-    const list = Array.isArray(all) ? all : [];
-    const raw = list.map((p) => (p.category || "").trim()).filter(Boolean);
+    const list = await productService.fetchAllProducts();
+    const raw = list.map((p) => (p && (p.category || "").trim())).filter(Boolean);
     return [...new Set(raw)].sort((a, b) => a.localeCompare(b));
   },
   fetchProductById: async (id) => {
@@ -43,7 +56,7 @@ const productService = {
   /** Products owned by the current vendor (requires auth). */
   fetchVendorProducts: async () => {
     const response = await axios.get(`${API_URL}?mine=1`, { withCredentials: true });
-    return Array.isArray(response.data) ? response.data : response.data?.products ?? [];
+    return toProductList(response.data);
   },
   rateProduct: async (id, value) => {
     const response = await axios.put(

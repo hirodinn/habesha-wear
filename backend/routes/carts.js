@@ -1,9 +1,44 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { Cart, validateNewCart, validateUpdateCart } from "../model/cart.js";
 import { validateId } from "../utils/validateId.js";
 
 const router = express.Router();
+
+function normalizeIncomingProducts(products) {
+  if (!Array.isArray(products)) return [];
+
+  return products
+    .map((item) => {
+      const rawId = item?.productId;
+      const productId =
+        typeof rawId === "string"
+          ? rawId
+          : rawId && typeof rawId === "object"
+            ? String(rawId._id || rawId.id || "")
+            : "";
+      const quantity = Number(item?.quantity || 0);
+      return { productId, quantity };
+    })
+    .filter((item) => item.productId && Number.isFinite(item.quantity));
+}
+
+function validateNormalizedProducts(products) {
+  if (!Array.isArray(products) || products.length === 0) {
+    return "Cart products are required.";
+  }
+
+  const invalid = products.find(
+    (p) => !mongoose.Types.ObjectId.isValid(p.productId) || !Number.isInteger(p.quantity) || p.quantity < 1
+  );
+
+  if (invalid) {
+    return "Each cart item must include a valid productId and quantity >= 1.";
+  }
+
+  return null;
+}
 
 router.get("/", async (req, res) => {
   res.set({
@@ -52,7 +87,13 @@ router.post("/", async (req, res) => {
   const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
 
   const obj = { ...req.body };
+  obj.products = normalizeIncomingProducts(req.body?.products);
   obj.userId = decoded._id;
+
+  const normalizedProductsError = validateNormalizedProducts(obj.products);
+  if (normalizedProductsError) {
+    return res.status(400).json({ success: false, message: normalizedProductsError });
+  }
 
   const { error } = validateNewCart(obj);
   if (error)
@@ -62,10 +103,11 @@ router.post("/", async (req, res) => {
 
   try {
     const cart = new Cart(obj);
-    cart.save();
-    res.send(cart);
+    await cart.save();
+    await cart.populate("products.productId", "name images price category");
+    return res.send(cart);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -82,8 +124,8 @@ router.delete("/", async (req, res) => {
 
   if (decoded.role === "customer") {
     const cart = await Cart.findOne({ userId: decoded._id });
-    await cart.deleteOne();
-    return res.send(cart);
+    if (cart) await cart.deleteOne();
+    return res.send(cart || null);
   }
 
   if (!token)
@@ -153,7 +195,13 @@ router.put("/", async (req, res) => {
   if (!token)
     return res.status(401).json({ success: false, message: "Access Denied" });
 
-  const { error } = validateUpdateCart(req.body);
+  const normalizedProducts = normalizeIncomingProducts(req.body?.products);
+  const normalizedProductsError = validateNormalizedProducts(normalizedProducts);
+  if (normalizedProductsError) {
+    return res.status(400).json({ success: false, message: normalizedProductsError });
+  }
+
+  const { error } = validateUpdateCart({ products: normalizedProducts });
   if (error)
     return res
       .status(400)
@@ -166,20 +214,18 @@ router.put("/", async (req, res) => {
       if (!cart) {
         cart = new Cart({ userId: decoded._id, products: [] });
       }
-      const index = cart.products.indexOf(req.body.productId);
-      if(index > -1){
-        cart.products[index].quantity = req.body.quantity;
-      }else{
-        cart.products.push({productId: req.body.productId, quantity: req.body.quantity})
-      }
+
+      cart.products = normalizedProducts;
       await cart.save();
       await cart.populate("products.productId", "name images price category");
-      res.send(cart);
+      return res.send(cart);
     } else {
-      res.status(400).json({ success: false, message: "user not verified" });
+      return res
+        .status(400)
+        .json({ success: false, message: "user not verified" });
     }
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 

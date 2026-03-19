@@ -1,14 +1,23 @@
+import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser, toggleDarkMode } from "../../redux/userAction";
+import { getCart } from "../../redux/cartSlice";
 import { Sun, Moon, User, LogOut, LogIn, ShoppingCart, Store } from "lucide-react";
 
 const Header = () => {
   const { user, darkMode } = useSelector((state) => state.auth);
   const { items: cartItems } = useSelector((state) => state.cart);
+  const cartCount = cartItems.reduce((total, item) => total + (Number(item.quantity) || 0), 0);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (user?.role === "customer") {
+      dispatch(getCart());
+    }
+  }, [dispatch, user?.role]);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -42,9 +51,9 @@ const Header = () => {
             <Link to="/cart" className={`${navLinkClass("/cart")} relative`}>
               <ShoppingCart size={18} aria-hidden />
               <span className="hidden sm:inline">Cart</span>
-              {cartItems.length > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[var(--color-burgundy)] text-white text-[10px] font-bold px-1">
-                  {cartItems.length}
+                  {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
             </Link>

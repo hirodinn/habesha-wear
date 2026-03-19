@@ -1,9 +1,25 @@
 import axios from "axios";
 
 const API_URL = "/api/carts";
+const withCreds = { withCredentials: true };
+
+const getProductId = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "object") return String(value._id || value.id || "");
+  return "";
+};
+
+const normalizeProductsForPayload = (products = []) =>
+  products
+    .map((p) => ({
+      productId: getProductId(p.productId),
+      quantity: Number(p.quantity || 1),
+    }))
+    .filter((p) => p.productId && p.quantity > 0);
 
 export const fetchCart = async () => {
-  const response = await axios.get(API_URL);
+  const response = await axios.get(API_URL, withCreds);
   return response.data;
 };
 
@@ -24,15 +40,12 @@ export const addToCart = async (productId, quantity = 1) => {
   }
 
   if (!cart) {
-    // Create new cart
-    const response = await axios.post(API_URL, {
-      products: [{ productId, quantity }],
-    });
+    const response = await axios.post(API_URL, { products: [{ productId, quantity }] }, withCreds);
     return response.data;
   } else {
     // Update existing cart
     const existingProductIndex = cart.products.findIndex(
-      (p) => p.productId === productId
+      (p) => getProductId(p.productId) === String(productId)
     );
     let updatedProducts = [...cart.products];
     if (existingProductIndex > -1) {
@@ -41,10 +54,7 @@ export const addToCart = async (productId, quantity = 1) => {
       updatedProducts.push({ productId, quantity });
     }
 
-    const response = await axios.put(API_URL, {
-      products: updatedProducts,
-    });
-
+    const response = await axios.put(API_URL, { products: normalizeProductsForPayload(updatedProducts) }, withCreds);
     return response.data;
   }
 };
@@ -56,17 +66,15 @@ export const updateCartItem = async (productId, quantity) => {
   if (!cart) return null;
 
   const updatedProducts = cart.products.map((p) =>
-    p.productId === productId ? { ...p, quantity } : p
+    getProductId(p.productId) === String(productId) ? { ...p, quantity } : p
   );
 
-  const response = await axios.put(API_URL, {
-    products: updatedProducts,
-  });
+  const response = await axios.put(API_URL, { products: normalizeProductsForPayload(updatedProducts) }, withCreds);
   return response.data;
 };
 
 export const removeCart = async () => {
-  const response = await axios.delete(API_URL);
+  const response = await axios.delete(API_URL, withCreds);
   return response.data;
 };
 
@@ -77,11 +85,9 @@ export const removeFromCart = async (productId) => {
   if (!cart) return null;
 
   const updatedProducts = cart.products.filter(
-    (p) => p.productId !== productId
+    (p) => getProductId(p.productId) !== String(productId)
   );
 
-  const response = await axios.put(API_URL, {
-    products: updatedProducts,
-  });
+  const response = await axios.put(API_URL, { products: normalizeProductsForPayload(updatedProducts) }, withCreds);
   return response.data;
 };

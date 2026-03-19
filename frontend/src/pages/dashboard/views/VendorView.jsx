@@ -15,18 +15,24 @@ import {
   X,
   Loader2,
   Upload,
+  Image as ImageIcon,
   Store,
   Inbox,
   ExternalLink,
 } from "lucide-react";
 
+const TAB_LIVE = "live";
+const TAB_SUBMISSIONS = "submissions";
+
 const VendorView = () => {
   const { user } = useSelector((state) => state.auth);
+  const [activeTab, setActiveTab] = useState(TAB_LIVE);
+  const [preProducts, setPreProducts] = useState([]);
   const [vendorProducts, setVendorProducts] = useState([]);
   const [loadingVendorProducts, setLoadingVendorProducts] = useState(true);
 
   /** Only products owned by the current vendor (frontend filter in case backend cookie is missing). */
-  const myProducts = useMemo(() => {
+  const myLiveProducts = useMemo(() => {
     if (!user?.id && !user?._id) return vendorProducts;
     const id = String(user.id ?? user._id);
     return vendorProducts.filter((p) => {
@@ -48,30 +54,26 @@ const VendorView = () => {
   const [message, setMessage] = useState(null);
   const [expandedProductId, setExpandedProductId] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [submissionFilter, setSubmissionFilter] = useState("all"); // "all" | "pending" | "archived"
-
-  const normalizeStatus = (status) => (status ? String(status).toLowerCase() : "active");
-
-  const filteredProducts = useMemo(() => {
-    if (submissionFilter === "all") return myProducts;
-    return myProducts.filter((p) => normalizeStatus(p.status) === submissionFilter);
-  }, [myProducts, submissionFilter]);
-
-  const fetchVendorProducts = async () => {
-    setLoadingVendorProducts(true);
-    try {
-      const list = await productService.fetchVendorProducts();
-      setVendorProducts(Array.isArray(list) ? list : []);
-    } catch (err) {
-      console.error("Error loading vendor products:", err);
-      setVendorProducts([]);
-    } finally {
-      setLoadingVendorProducts(false);
-    }
-  };
+  const [submissionFilter, setSubmissionFilter] = useState("all"); // "all" | "pending" | "rejected"
 
   useEffect(() => {
-    fetchVendorProducts();
+    fetchPreProducts();
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoadingVendorProducts(true);
+      try {
+        const list = await productService.fetchVendorProducts();
+        setVendorProducts(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error("Error loading vendor products:", err);
+        setVendorProducts([]);
+      } finally {
+        setLoadingVendorProducts(false);
+      }
+    };
+    load();
   }, []);
 
   useEffect(() => {
@@ -86,6 +88,15 @@ const VendorView = () => {
     };
     load();
   }, []);
+
+  const fetchPreProducts = async () => {
+    try {
+      const response = await axios.get("/api/preproducts");
+      setPreProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching pre-products:", error);
+    }
+  };
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -153,7 +164,7 @@ const VendorView = () => {
         formData.append("images", image);
       });
 
-      await axios.post("/api/products", formData, {
+      await axios.post("/api/preproducts", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -170,7 +181,7 @@ const VendorView = () => {
       });
       setSelectedImages([]);
       setImagePreviews([]);
-      fetchVendorProducts();
+      fetchPreProducts();
     } catch (error) {
       setMessage({
         type: "error",
@@ -190,14 +201,14 @@ const VendorView = () => {
           dot: "bg-yellow-500",
           border: "border-yellow-500",
         };
-      case "active":
+      case "accepted":
         return {
           badge:
             "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-500/20",
           dot: "bg-green-500",
           border: "border-green-500",
         };
-      case "archived":
+      case "rejected":
         return {
           badge:
             "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-500/20",
@@ -216,9 +227,9 @@ const VendorView = () => {
 
   const getStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
-      case "active":
+      case "accepted":
         return <CheckCircle size={14} />;
-      case "archived":
+      case "rejected":
         return <XCircle size={14} />;
       default:
         return <Clock size={14} />;
@@ -239,7 +250,9 @@ const VendorView = () => {
 
         <button
           onClick={() => {
-            setShowForm((prev) => !prev);
+            const next = !showForm;
+            setShowForm(next);
+            if (next) setActiveTab(TAB_SUBMISSIONS);
           }}
           className="btn-primary flex items-center gap-2"
         >
@@ -265,87 +278,78 @@ const VendorView = () => {
         </div>
       )}
 
-      {/* Unified list + filter */}
-      <div className="animate-fade-in">
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="text-sm font-medium text-(--text-secondary) mr-1">Show:</span>
-          {[
-            { value: "all", label: "All", count: myProducts.length },
-            {
-              value: "active",
-              label: "Active",
-              count: myProducts.filter((p) => normalizeStatus(p.status) === "active").length,
-            },
-            {
-              value: "pending",
-              label: "Pending",
-              count: myProducts.filter((p) => normalizeStatus(p.status) === "pending").length,
-            },
-            {
-              value: "archived",
-              label: "Archived",
-              count: myProducts.filter((p) => normalizeStatus(p.status) === "archived").length,
-            },
-          ].map(({ value, label, count }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setSubmissionFilter(value)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                submissionFilter === value
-                  ? "bg-[var(--color-burgundy)] text-white shadow-sm"
-                  : "bg-(--bg-card) text-(--text-secondary) border border-(--border-color) hover:border-[var(--color-burgundy)]/30 hover:text-(--text-main)"
-              }`}
-            >
-              {label}
-              <span className={`ml-1.5 ${submissionFilter === value ? "opacity-90" : "opacity-70"}`}>
-                ({count})
-              </span>
-            </button>
-          ))}
+      {/* Tabs: Live | Submissions */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex rounded-xl bg-(--bg-card) border border-(--border-color) p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => setActiveTab(TAB_LIVE)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === TAB_LIVE
+                ? "bg-[var(--color-burgundy)] text-white shadow-sm"
+                : "text-(--text-secondary) hover:text-(--text-main) hover:bg-(--bg-main)"
+            }`}
+          >
+            <Store size={18} />
+            My live products
+            <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
+              activeTab === TAB_LIVE ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
+            }`}>
+              {myLiveProducts.length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab(TAB_SUBMISSIONS)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === TAB_SUBMISSIONS
+                ? "bg-[var(--color-burgundy)] text-white shadow-sm"
+                : "text-(--text-secondary) hover:text-(--text-main) hover:bg-(--bg-main)"
+            }`}
+          >
+            <Inbox size={18} />
+            Submissions
+            <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
+              activeTab === TAB_SUBMISSIONS ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
+            }`}>
+              {preProducts.length}
+            </span>
+          </button>
         </div>
+      </div>
 
-        {loadingVendorProducts ? (
-          <div className="flex items-center justify-center py-20 rounded-2xl bg-(--bg-card) border border-(--border-color)">
-            <Loader2 className="w-10 h-10 text-[var(--color-burgundy)] animate-spin" />
-          </div>
-        ) : myProducts.length > 0 ? (
-          filteredProducts.length > 0 ? (
+      {/* Tab content: My live products (vendor-owned only) */}
+      {activeTab === TAB_LIVE && (
+        <div className="animate-fade-in">
+          {loadingVendorProducts ? (
+            <div className="flex items-center justify-center py-20 rounded-2xl bg-(--bg-card) border border-(--border-color)">
+              <Loader2 className="w-10 h-10 text-[var(--color-burgundy)] animate-spin" />
+            </div>
+          ) : myLiveProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {filteredProducts.map((product) => (
+              {myLiveProducts.map((product) => (
                 <div
                   key={product._id}
-                  className={`group rounded-2xl border overflow-hidden bg-(--bg-card) transition-all duration-300 hover:shadow-xl ${
-                    normalizeStatus(product.status) === "pending"
-                      ? "border-amber-200 dark:border-amber-800/50 hover:border-amber-300 dark:hover:border-amber-700/50"
-                      : normalizeStatus(product.status) === "archived"
-                        ? "border-red-200 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700/50"
-                        : "border-(--border-color) hover:shadow-[var(--color-burgundy)]/5 hover:border-[var(--color-burgundy)]/20"
-                  }`}
+                  className="group rounded-2xl border border-(--border-color) bg-(--bg-card) overflow-hidden hover:shadow-xl hover:shadow-[var(--color-burgundy)]/5 hover:border-[var(--color-burgundy)]/20 transition-all duration-300"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden bg-(--bg-main)">
-                    <ProductImageCarousel
-                      images={product.images}
-                      alt={product.name}
-                      className="w-full h-full"
-                      imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      placeholder={
-                        <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
-                          <Package size={48} className="opacity-30" />
-                        </div>
-                      }
-                    />
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/95 dark:bg-black/80 backdrop-blur-sm text-(--text-main) border border-(--border-color) shadow-sm">
+                    {product.images?.[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
+                        <Package size={48} className="opacity-30" />
+                      </div>
+                    )}
+                    <div className="absolute top-3 left-3">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-black/70 backdrop-blur-sm text-(--text-main) border border-(--border-color)">
                         {product.category}
                       </span>
                     </div>
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-md border shadow-sm ${getStatusColor(normalizeStatus(product.status)).badge}`}>
-                        {getStatusIcon(normalizeStatus(product.status))}
-                        {normalizeStatus(product.status)}
-                      </span>
-                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="p-4">
                     <h3 className="font-display font-bold text-(--text-main) text-lg truncate mb-1">{product.name}</h3>
@@ -355,73 +359,39 @@ const VendorView = () => {
                         Stock: {product.stock}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-(--border-color)">
+                    <div className="flex items-center justify-between">
                       <span className="font-bold text-lg text-[var(--color-burgundy)]">
                         {Number(product.price || 0).toLocaleString()} Birr
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setExpandedProductId(expandedProductId === product._id ? null : product._id)}
+                      <Link
+                        to="/"
                         className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-burgundy)] hover:underline"
                       >
-                        {expandedProductId === product._id ? "Less" : "Details"}
-                        {expandedProductId === product._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                      </button>
+                        View in shop
+                        <ExternalLink size={14} />
+                      </Link>
                     </div>
-                    {expandedProductId === product._id && (
-                      <div className="mt-4 pt-4 border-t border-(--border-color) space-y-3">
-                        <p className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">Gallery ({product.images?.length || 0})</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {product.images?.map((img, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => window.open(img, "_blank")}
-                              className="aspect-square rounded-lg overflow-hidden border border-(--border-color) hover:ring-2 hover:ring-[var(--color-burgundy)]/40"
-                            >
-                              <img src={img} alt="" className="w-full h-full object-cover" />
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[10px] font-mono text-(--text-secondary) truncate">ID: {product._id}</p>
-                          {normalizeStatus(product.status) === "active" && (
-                            <Link
-                              to="/"
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-burgundy)] hover:underline"
-                            >
-                              View in shop
-                              <ExternalLink size={12} />
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="py-12 text-center rounded-2xl border border-dashed border-(--border-color) bg-(--bg-card) text-(--text-secondary) text-sm">
-              No {submissionFilter} products yet.
+            <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
+              <Store className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
+              <p className="text-(--text-main) font-semibold mb-1">No products live yet</p>
+              <p className="text-(--text-secondary) text-sm mb-4">Products you own appear here after approval. Submit items for review to get started.</p>
+              <button
+                type="button"
+                onClick={() => { setShowForm(true); setActiveTab(TAB_SUBMISSIONS); }}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New submission
+              </button>
             </div>
-          )
-        ) : (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
-            <Inbox className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
-            <p className="text-(--text-main) font-semibold mb-1">No submissions yet</p>
-            <p className="text-(--text-secondary) text-sm mb-4">Submit a product for review to see it here.</p>
-            <button
-              type="button"
-              onClick={() => setShowForm(true)}
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              <Plus size={18} />
-              New submission
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {showForm && (
         <div className="card-standard p-6 md:p-8 animate-fade-in shadow-xl">
@@ -593,6 +563,146 @@ const VendorView = () => {
         </div>
       )}
 
+      {/* Tab content: Submissions (pre-products by status) */}
+      {activeTab === TAB_SUBMISSIONS && (
+        <div className="animate-fade-in">
+          {preProducts.length > 0 ? (
+            <>
+              {/* Filter: All | Pending | Rejected */}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <span className="text-sm font-medium text-(--text-secondary) mr-1">Show:</span>
+                {[
+                  { value: "all", label: "All", count: preProducts.length },
+                  { value: "pending", label: "Pending", count: preProducts.filter((p) => p.status === "pending").length },
+                  { value: "rejected", label: "Rejected", count: preProducts.filter((p) => p.status === "rejected").length },
+                ].map(({ value, label, count }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setSubmissionFilter(value)}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                      submissionFilter === value
+                        ? "bg-[var(--color-burgundy)] text-white shadow-sm"
+                        : "bg-(--bg-card) text-(--text-secondary) border border-(--border-color) hover:border-[var(--color-burgundy)]/30 hover:text-(--text-main)"
+                    }`}
+                  >
+                    {label}
+                    <span className={`ml-1.5 ${submissionFilter === value ? "opacity-90" : "opacity-70"}`}>({count})</span>
+                  </button>
+                ))}
+              </div>
+
+              {(() => {
+                const filtered = submissionFilter === "all"
+                  ? preProducts
+                  : preProducts.filter((p) => p.status === submissionFilter);
+                if (filtered.length === 0) {
+                  return (
+                    <div className="py-12 text-center rounded-2xl border border-dashed border-(--border-color) bg-(--bg-card) text-(--text-secondary) text-sm">
+                      No {submissionFilter === "all" ? "submissions" : submissionFilter} yet.
+                    </div>
+                  );
+                }
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {filtered.map((product) => (
+                      <div
+                        key={product._id}
+                        className={`group rounded-2xl border overflow-hidden bg-(--bg-card) transition-all duration-300 hover:shadow-xl ${
+                          product.status === "pending"
+                            ? "border-amber-200 dark:border-amber-800/50 hover:border-amber-300 dark:hover:border-amber-700/50"
+                            : "border-red-200 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700/50"
+                        }`}
+                      >
+                        <div className="relative aspect-[4/5] overflow-hidden bg-(--bg-main)">
+                          <ProductImageCarousel
+                            images={product.images}
+                            alt={product.name}
+                            className="w-full h-full"
+                            imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            placeholder={
+                              <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
+                                <Package size={48} className="opacity-30" />
+                              </div>
+                            }
+                          />
+                          {/* Category: top-left */}
+                          <div className="absolute top-3 left-3 z-10">
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/95 dark:bg-black/80 backdrop-blur-sm text-(--text-main) border border-(--border-color) shadow-sm">
+                              {product.category}
+                            </span>
+                          </div>
+                          {/* Status: top-right */}
+                          <div className="absolute top-3 right-3 z-10">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-md border shadow-sm ${getStatusColor(product.status).badge}`}>
+                              {getStatusIcon(product.status)}
+                              {product.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-display font-bold text-(--text-main) text-lg truncate mb-1">{product.name}</h3>
+                          <p className="text-(--text-secondary) text-sm line-clamp-2 mb-3">{product.description}</p>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-(--bg-main) text-(--text-secondary) border border-(--border-color)">
+                              Stock: {product.stock}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-(--border-color)">
+                            <span className="font-bold text-lg text-[var(--color-burgundy)]">
+                              {Number(product.price || 0).toLocaleString()} Birr
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedProductId(expandedProductId === product._id ? null : product._id)}
+                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-burgundy)] hover:underline"
+                            >
+                              {expandedProductId === product._id ? "Less" : "Details"}
+                              {expandedProductId === product._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </button>
+                          </div>
+                          {expandedProductId === product._id && (
+                            <div className="mt-4 pt-4 border-t border-(--border-color) space-y-3">
+                              <p className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">Gallery ({product.images?.length || 0})</p>
+                              <div className="grid grid-cols-3 gap-2">
+                                {product.images?.map((img, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => window.open(img, "_blank")}
+                                    className="aspect-square rounded-lg overflow-hidden border border-(--border-color) hover:ring-2 hover:ring-[var(--color-burgundy)]/40"
+                                  >
+                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                  </button>
+                                ))}
+                              </div>
+                              <p className="text-[10px] font-mono text-(--text-secondary) truncate">ID: {product._id}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </>
+          ) : (
+            <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
+              <Inbox className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
+              <p className="text-(--text-main) font-semibold mb-1">No submissions yet</p>
+              <p className="text-(--text-secondary) text-sm mb-4">Submit a product for review to see it here.</p>
+              <button
+                type="button"
+                onClick={() => setShowForm(true)}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <Plus size={18} />
+                New submission
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

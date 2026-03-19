@@ -1,19 +1,18 @@
 import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Tag,
   Search,
   Trash2,
   AlertCircle,
   ShoppingBag,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 const AdminProductsView = () => {
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [usersById, setUsersById] = useState({});
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,23 +29,6 @@ const AdminProductsView = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get("/api/users");
-        const list = Array.isArray(response.data) ? response.data : [];
-        const map = list.reduce((acc, u) => {
-          if (u?._id) acc[String(u._id)] = u;
-          return acc;
-        }, {});
-        setUsersById(map);
-      } catch {
-        setUsersById({});
-      }
-    };
-    fetchUsers();
   }, []);
 
   const handleDeleteProduct = async (product) => {
@@ -73,64 +55,11 @@ const AdminProductsView = () => {
     }
   };
 
-  const handleStatusChange = async (product, nextStatus) => {
-    if (!nextStatus || nextStatus === (product.status || "active")) return;
-
-    setLoading(true);
-    try {
-      await axios.put(`/api/products/${product._id}/status`, {
-        status: nextStatus,
-      });
-      setActionMessage({
-        type: "success",
-        text: `Status updated for "${product.name}" to ${nextStatus}.`,
-      });
-      fetchProducts();
-    } catch {
-      setActionMessage({ type: "error", text: "Failed to update status." });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusBadgeClass = (status) => {
-    switch ((status || "active").toLowerCase()) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/20";
-      case "archived":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-500/20";
-      default:
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-500/20";
-    }
-  };
-
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const getOwnerId = (product) => {
-    const owner = product?.ownedBy;
-    if (!owner) return "N/A";
-    if (typeof owner === "string") return owner;
-    return String(owner._id || owner.id || "N/A");
-  };
-
-  const getOwnerName = (product) => {
-    const owner = product?.ownedBy;
-    if (typeof owner === "object" && owner?.name) return owner.name;
-    const id = getOwnerId(product);
-    if (id && usersById[id]?.name) return usersById[id].name;
-    return "Unknown Vendor";
-  };
-
-  const getOwnerEmail = (product) => {
-    const owner = product?.ownedBy;
-    if (typeof owner === "object" && owner?.email) return owner.email;
-    const id = getOwnerId(product);
-    return usersById[id]?.email || "N/A";
-  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
@@ -140,14 +69,6 @@ const AdminProductsView = () => {
             <Tag className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-(--text-secondary) hover:text-[var(--color-burgundy)]"
-            >
-              <ArrowLeft size={16} />
-              Back
-            </button>
             <h1 className="text-4xl font-bold text-(--text-main)">
               Product Management
             </h1>
@@ -202,9 +123,6 @@ const AdminProductsView = () => {
                 <th className="px-6 py-4 font-bold border-b border-(--border-color)">
                   Rating
                 </th>
-                <th className="px-6 py-4 font-bold border-b border-(--border-color)">
-                  Status
-                </th>
                 <th className="px-6 py-4 font-bold border-b border-(--border-color) text-right">
                   Actions
                 </th>
@@ -214,17 +132,11 @@ const AdminProductsView = () => {
               {filteredProducts.map((product) => (
                 <Fragment key={product._id}>
                   <tr
-                    onDoubleClick={() =>
-                      setExpandedProductId((prev) =>
-                        prev === product._id ? null : product._id
-                      )
-                    }
-                    className={`group transition-colors cursor-pointer ${
+                    className={`group transition-colors ${
                       expandedProductId === product._id
                         ? "bg-[var(--color-burgundy)]/10"
                         : "hover:bg-[var(--color-burgundy)]/5"
                     }`}
-                    title="Double-click to expand/collapse"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -289,33 +201,34 @@ const AdminProductsView = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${getStatusBadgeClass(
-                          product.status
-                        )}`}
-                      >
-                        {(product.status || "active")}
-                      </span>
-                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-2">
-                        <select
-                          value={product.status || "active"}
-                          onChange={(e) => handleStatusChange(product, e.target.value)}
-                          disabled={loading}
-                          className="px-2.5 py-2 rounded-lg text-xs font-semibold border border-(--border-color) bg-(--bg-main) text-(--text-main)"
-                          title="Change status"
+                        <button
+                          onClick={() =>
+                            setExpandedProductId(
+                              expandedProductId === product._id
+                                ? null
+                                : product._id
+                            )
+                          }
+                          className="p-2 text-(--text-secondary) hover:text-[var(--color-burgundy)] hover:bg-[var(--color-burgundy)]/5 rounded-lg transition-all cursor-pointer"
+                          title={
+                            expandedProductId === product._id
+                              ? "Collapse Details"
+                              : "Expand Details"
+                          }
                         >
-                          <option value="pending">Pending</option>
-                          <option value="active">Active</option>
-                          <option value="archived">Archived</option>
-                        </select>
+                          {expandedProductId === product._id ? (
+                            <ChevronUp size={18} />
+                          ) : (
+                            <ChevronDown size={18} />
+                          )}
+                        </button>
                         <button
                           onClick={() => handleDeleteProduct(product)}
                           disabled={loading}
                           className="p-2 text-(--text-secondary) hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all cursor-pointer"
-                          title="Hard Delete Product"
+                          title="Delete Product"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -324,7 +237,10 @@ const AdminProductsView = () => {
                   </tr>
                   {expandedProductId === product._id && (
                     <tr className="bg-[var(--color-burgundy)]/5 animate-fade-in">
-                      <td colSpan="7" className="px-6 py-8 border-b border-(--border-color)">
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 border-b border-(--border-color)"
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           <div className="space-y-4">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">
@@ -333,42 +249,21 @@ const AdminProductsView = () => {
                             <p className="text-sm text-(--text-main) leading-relaxed">
                               {product.description}
                             </p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color) sm:col-span-2">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Product Name</span>
-                                <span className="text-sm font-semibold text-(--text-main)">{product.name}</span>
-                              </div>
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color) sm:col-span-2">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Product ID</span>
-                                <span className="font-mono text-xs text-(--text-main)">{product._id}</span>
+                            <div className="pt-4 flex gap-4">
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Product ID
+                                </span>
+                                <span className="font-mono text-xs text-(--text-main)">
+                                  {product._id}
+                                </span>
                               </div>
                               <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Vendor</span>
-                                <span className="text-sm font-semibold text-(--text-main)">{getOwnerName(product)}</span>
-                                <span className="block font-mono text-[10px] text-(--text-secondary) mt-0.5">{getOwnerId(product)}</span>
-                              </div>
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Vendor Email</span>
-                                <span className="text-xs text-(--text-main) break-all">{getOwnerEmail(product)}</span>
-                              </div>
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Price</span>
-                                <span className="text-sm font-semibold text-(--text-main)">{Number(product.price || 0).toLocaleString()} Birr</span>
-                              </div>
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Stock</span>
-                                <span className="text-sm font-semibold text-(--text-main)">{product.stock ?? 0}</span>
-                              </div>
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Status</span>
-                                <span className="text-sm font-semibold text-(--text-main)">{product.status || "active"}</span>
-                              </div>
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
-                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Rating</span>
-                                <span className="text-sm font-semibold text-(--text-main)">
-                                  {product.ratingCount > 0
-                                    ? `${Number(product.ratingAverage || 0).toFixed(1)} (${product.ratingCount})`
-                                    : "No ratings"}
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Vendor ID
+                                </span>
+                                <span className="font-mono text-xs text-(--text-main)">
+                                  {product.ownedBy || "N/A"}
                                 </span>
                               </div>
                             </div>
@@ -387,10 +282,16 @@ const AdminProductsView = () => {
                                   onClick={() => window.open(img, "_blank")}
                                 />
                               ))}
-                              {(!product.images || product.images.length === 0) && (
+                              {(!product.images ||
+                                product.images.length === 0) && (
                                 <div className="col-span-3 py-8 flex flex-col items-center justify-center bg-(--bg-main) rounded-xl border border-dashed border-(--border-color) text-(--text-secondary)">
-                                  <ShoppingBag size={24} className="opacity-20 mb-2" />
-                                  <span className="text-xs">No images available</span>
+                                  <ShoppingBag
+                                    size={24}
+                                    className="opacity-20 mb-2"
+                                  />
+                                  <span className="text-xs">
+                                    No images available
+                                  </span>
                                 </div>
                               )}
                             </div>
@@ -403,7 +304,7 @@ const AdminProductsView = () => {
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="px-6 py-20 text-center">
+                  <td colSpan="6" className="px-6 py-20 text-center">
                     <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-500/20" />
                     <p className="text-(--text-secondary)">
                       {searchTerm

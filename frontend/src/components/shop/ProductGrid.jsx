@@ -12,6 +12,7 @@ import {
   X,
   SlidersHorizontal,
   Crown,
+  Check,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +31,7 @@ const ProductCard = ({
   ratingLoadingId,
   user,
   variant = "default",
+  addedToCartId,
 }) => {
   const navigate = useNavigate();
   const ratingAverage = Number(product.ratingAverage || 0);
@@ -40,7 +42,7 @@ const ProductCard = ({
       navigate("/login");
       return;
     }
-    onAddToCart(product);
+    onAddToCart(product, "normal");
   };
 
   const isCompact = variant === "compact";
@@ -48,6 +50,8 @@ const ProductCard = ({
   const handleViewDetails = () => {
     navigate(`/products/${product._id}`);
   };
+
+  const added = addedToCartId === product._id;
 
   return (
     <div
@@ -82,19 +86,23 @@ const ProductCard = ({
             <Tag size={10} /> {product.category || "Item"}
           </span>
         </div>
-        {user?.role === "customer" && (
+        {(!user || user.role !== "vendor") && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleAdd();
             }}
             disabled={addingToCart === product._id || product.stock <= 0}
-            className="absolute bottom-3 right-3 bg-[var(--color-burgundy)] text-white p-3 rounded-xl shadow-lg translate-y-14 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[var(--color-burgundy-light)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`absolute bottom-3 right-3 p-3 rounded-xl shadow-lg translate-y-14 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+              added
+                ? "bg-emerald-600 text-white"
+                : "bg-[var(--color-burgundy)] text-white hover:bg-[var(--color-burgundy-light)]"
+            }`}
           >
             {addingToCart === product._id ? (
               <Loader2 size={20} className="animate-spin" />
             ) : (
-              <ShoppingCart size={20} />
+              added ? <Check size={20} /> : <ShoppingCart size={20} />
             )}
           </button>
         )}
@@ -141,31 +149,15 @@ const ProductCard = ({
                   title={`Rate ${value} star${value > 1 ? "s" : ""}`}
                   aria-label={`Rate ${value} star${value > 1 ? "s" : ""}`}
                 >
-                  {(() => {
-                    const fillRatio = Math.max(
-                      0,
-                      Math.min(1, ratingAverage - (value - 1))
-                    );
-                    return (
-                      <span className="relative block w-[18px] h-[18px]">
-                        <Star
-                          size={18}
-                          className="absolute inset-0 text-[var(--border-color)]"
-                          fill="none"
-                        />
-                        <span
-                          className="absolute inset-0 overflow-hidden"
-                          style={{ width: `${fillRatio * 100}%` }}
-                        >
-                          <Star
-                            size={18}
-                            className="text-[var(--color-burgundy)]"
-                            fill="currentColor"
-                          />
-                        </span>
-                      </span>
-                    );
-                  })()}
+                  <Star
+                    size={18}
+                    className={
+                      value <= Math.round(ratingAverage)
+                        ? "text-[var(--color-burgundy)]"
+                        : "text-[var(--border-color)]"
+                    }
+                    fill={value <= Math.round(ratingAverage) ? "currentColor" : "none"}
+                  />
                 </button>
               ))}
               {ratingLoadingId === product._id && (
@@ -193,21 +185,24 @@ const ProductCard = ({
   );
 };
 
-const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadingId, user, size }) => {
+const FeaturedBlock = ({
+  product,
+  onAddToCart,
+  onRate,
+  addingToCart,
+  ratingLoadingId,
+  user,
+  size,
+  addedToCartId,
+}) => {
   const navigate = useNavigate();
   const isLarge = size === "large";
-
-  const handleAdd = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    onAddToCart(product);
-  };
 
   const handleViewDetails = () => {
     navigate(`/products/${product._id}`);
   };
+
+  const added = addedToCartId === product._id;
 
   return (
     <div
@@ -250,21 +245,25 @@ const FeaturedBlock = ({ product, onAddToCart, onRate, addingToCart, ratingLoadi
           <span className="font-bold text-white text-lg">
             {formatNumber(product.price)} Birr
           </span>
-          {user?.role === "customer" && (
+          {(!user || user.role !== "vendor") && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleAdd();
+                onAddToCart(product, "featured");
               }}
               disabled={addingToCart === product._id || product.stock <= 0}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[var(--color-burgundy)] font-semibold text-sm hover:bg-white/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                added
+                  ? "bg-emerald-600 text-white"
+                  : "bg-white text-[var(--color-burgundy)] hover:bg-white/90"
+              }`}
             >
               {addingToCart === product._id ? (
                 <Loader2 size={18} className="animate-spin" />
               ) : (
                 <>
-                  <ShoppingCart size={18} />
-                  Add to cart
+                  {added ? <Check size={18} /> : <ShoppingCart size={18} />}
+                  {added ? "Added to cart" : "Add to cart"}
                 </>
               )}
             </button>
@@ -285,6 +284,8 @@ const ProductGrid = () => {
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingPaginated, setLoadingPaginated] = useState(true);
   const [addingToCart, setAddingToCart] = useState(null);
+  const [addedToCartId, setAddedToCartId] = useState(null);
+  const [addedVariant, setAddedVariant] = useState("normal");
   const [ratingLoadingId, setRatingLoadingId] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -359,14 +360,19 @@ const ProductGrid = () => {
     loadPaginated(1, searchQuery, categoryFilter);
   }, [searchQuery, categoryFilter]);
 
-  const handleAddToCart = async (product) => {
+  const handleAddToCart = async (product, variant = "normal") => {
     if (!user) {
       navigate("/login");
       return;
     }
     setAddingToCart(product._id);
     try {
-      await dispatch(addItemToCart({ productId: product._id, quantity: 1 })).unwrap();
+      await dispatch(addItemToCart({ productId: String(product._id ?? product.id ?? ""), quantity: 1 })).unwrap();
+      setAddedToCartId(product._id);
+      setAddedVariant(variant);
+      setTimeout(() => {
+        setAddedToCartId((current) => (current === product._id ? null : current));
+      }, 1200);
     } catch (err) {
       console.error("Failed to add to cart:", err);
     } finally {
@@ -531,21 +537,38 @@ const ProductGrid = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                       <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
-                        {user?.role === "customer" && (
+                        {(!user || user.role !== "vendor") && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleAddToCart(product);
+                              if (!user) {
+                                navigate("/login");
+                                return;
+                              }
+                              handleAddToCart(product, "featured");
                             }}
                             disabled={addingToCart === product._id || product.stock <= 0}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-burgundy)] py-3 font-semibold text-sm text-white shadow-lg transition-transform hover:scale-[1.02] disabled:opacity-50"
+                            className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold text-sm shadow-lg transition-transform hover:scale-[1.02] disabled:opacity-50 ${
+                              addedToCartId === product._id && addedVariant === "featured"
+                                ? "bg-emerald-600 text-white"
+                                : "bg-[var(--color-burgundy)] text-white"
+                            }`}
                           >
                             {addingToCart === product._id ? (
                               <Loader2 size={18} className="animate-spin" />
                             ) : (
                               <>
-                                <ShoppingCart size={18} />
-                                Add to Cart
+                                {addedToCartId === product._id && addedVariant === "featured" ? (
+                                  <>
+                                    <Check size={18} />
+                                    Added to cart
+                                  </>
+                                ) : (
+                                  <>
+                                    <ShoppingCart size={18} />
+                                    Add to Cart
+                                  </>
+                                )}
                               </>
                             )}
                           </button>
@@ -556,31 +579,15 @@ const ProductGrid = () => {
                       <div className="mb-2 flex items-center gap-2">
                         <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((s) => (
-                            (() => {
-                              const fillRatio = Math.max(
-                                0,
-                                Math.min(1, ratingAverage - (s - 1))
-                              );
-                              return (
-                                <span key={s} className="relative block w-[14px] h-[14px]">
-                                  <Star
-                                    size={14}
-                                    className="absolute inset-0 text-[var(--border-color)]"
-                                    fill="none"
-                                  />
-                                  <span
-                                    className="absolute inset-0 overflow-hidden"
-                                    style={{ width: `${fillRatio * 100}%` }}
-                                  >
-                                    <Star
-                                      size={14}
-                                      className="text-[var(--color-burgundy)]"
-                                      fill="currentColor"
-                                    />
-                                  </span>
-                                </span>
-                              );
-                            })()
+                            <Star
+                              key={s}
+                              size={14}
+                              className={
+                                s <= Math.round(ratingAverage)
+                                  ? "fill-[var(--color-burgundy)] text-[var(--color-burgundy)]"
+                                  : "fill-transparent text-[var(--border-color)]"
+                              }
+                            />
                           ))}
                         </div>
                         <span className="text-xs font-semibold text-[var(--text-main)]">
@@ -622,6 +629,7 @@ const ProductGrid = () => {
                 ratingLoadingId={ratingLoadingId}
                 user={user}
                 size="small"
+                addedToCartId={addedVariant === "featured" ? addedToCartId : null}
               />
             ))}
           </div>
@@ -665,6 +673,7 @@ const ProductGrid = () => {
                   ratingLoadingId={ratingLoadingId}
                   user={user}
                   variant="default"
+                  addedToCartId={addedVariant === "normal" ? addedToCartId : null}
                 />
               ))}
             </div>

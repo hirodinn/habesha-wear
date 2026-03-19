@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Users,
   Search,
   Trash2,
@@ -13,7 +11,6 @@ import {
 } from "lucide-react";
 
 const AdminUsersView = () => {
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
@@ -77,14 +74,6 @@ const AdminUsersView = () => {
             <Users className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-(--text-secondary) hover:text-[var(--color-burgundy)]"
-            >
-              <ArrowLeft size={16} />
-              Back
-            </button>
             <h1 className="text-4xl font-bold text-(--text-main)">
               User Management
             </h1>

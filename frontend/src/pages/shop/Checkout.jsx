@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Smartphone, Wallet } from "lucide-react";
 import { clearCart } from "../../redux/cartSlice";
-import { fetchCart, removeCart } from "../../services/cartService";
+import { removeCart } from "../../services/cartService";
 import orderService from "../../services/orderService";
 
 const Checkout = () => {
@@ -16,18 +16,19 @@ const Checkout = () => {
   const [message, setMessage] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState("chapa");
-  const [shippingAddress, setShippingAddress] = useState(() => {
-    const nameParts = (user?.name || "").trim().split(/\s+/).filter(Boolean);
-    return {
-      firstName: nameParts[0] || "",
-      lastName: nameParts.slice(1).join(" "),
-      phone: "",
-      email: user?.email || "",
-      addressLine: "",
-      city: "",
-      postalCode: "",
-    };
+  const [shippingAddress, setShippingAddress] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    addressLine: "",
+    city: "",
+    postalCode: "",
   });
+
+  useEffect(() => {
+    if (user?.email) setShippingAddress((s) => ({ ...s, email: user.email }));
+  }, [user?.email]);
 
   const subtotal = useMemo(
     () => cartItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0),
@@ -38,46 +39,41 @@ const Checkout = () => {
 
   const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
 
-  const handleAddressChange = (field, value) => {
-    setShippingAddress((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (isPlacingOrder) return;
+
+    if (!cartItems.length) {
+      setMessage("Your cart is empty.");
+      return;
+    }
+
+    const orderProducts = cartItems.map((item) => ({
+      productId: String(item.productId ?? ""),
+      quantity: Number(item.quantity) || 1,
+    })).filter((p) => p.productId);
+
+    if (!orderProducts.length) {
+      setMessage("No valid items in cart.");
+      return;
+    }
 
     setIsPlacingOrder(true);
     setMessage("");
 
     try {
-      const data = await fetchCart();
-      const cart = Array.isArray(data) ? data[0] : data;
-
-      if (!cart || !cart.products || cart.products.length === 0) {
-        setMessage("Your cart is empty.");
-        setIsPlacingOrder(false);
-        return;
-      }
-
-      const orderProducts = cart.products.map((p) => ({
-        productId: p.productId,
-        quantity: p.quantity,
-      }));
-
-      const cleanedAddress = {
-        firstName: shippingAddress.firstName.trim(),
-        lastName: shippingAddress.lastName.trim(),
-        phone: shippingAddress.phone.trim(),
-        email: shippingAddress.email.trim(),
-        addressLine: shippingAddress.addressLine.trim(),
-        city: shippingAddress.city.trim(),
-        postalCode: shippingAddress.postalCode.trim(),
-      };
-
       await orderService.postOrders({
         products: orderProducts,
         totalAmount: total,
-        shippingAddress: cleanedAddress,
+        shippingAddress: {
+          firstName: shippingAddress.firstName.trim(),
+          lastName: shippingAddress.lastName.trim(),
+          phone: shippingAddress.phone.trim(),
+          email: shippingAddress.email.trim(),
+          addressLine: shippingAddress.addressLine.trim(),
+          city: shippingAddress.city.trim(),
+          postalCode: shippingAddress.postalCode.trim(),
+        },
         deliveryMethod,
         paymentMethod,
       });
@@ -121,52 +117,52 @@ const Checkout = () => {
               <input
                 className="input-field"
                 placeholder="First name"
-                value={shippingAddress.firstName}
-                onChange={(e) => handleAddressChange("firstName", e.target.value)}
                 required
+                value={shippingAddress.firstName}
+                onChange={(e) => setShippingAddress((s) => ({ ...s, firstName: e.target.value }))}
               />
               <input
                 className="input-field"
                 placeholder="Last name"
-                value={shippingAddress.lastName}
-                onChange={(e) => handleAddressChange("lastName", e.target.value)}
                 required
+                value={shippingAddress.lastName}
+                onChange={(e) => setShippingAddress((s) => ({ ...s, lastName: e.target.value }))}
               />
               <input
                 className="input-field"
                 placeholder="Phone number"
-                value={shippingAddress.phone}
-                onChange={(e) => handleAddressChange("phone", e.target.value)}
                 required
+                value={shippingAddress.phone}
+                onChange={(e) => setShippingAddress((s) => ({ ...s, phone: e.target.value }))}
               />
               <input
                 className="input-field"
                 placeholder="Email"
                 type="email"
-                value={shippingAddress.email}
-                onChange={(e) => handleAddressChange("email", e.target.value)}
                 required
+                value={shippingAddress.email}
+                onChange={(e) => setShippingAddress((s) => ({ ...s, email: e.target.value }))}
               />
               <input
                 className="input-field md:col-span-2"
                 placeholder="Address"
-                value={shippingAddress.addressLine}
-                onChange={(e) => handleAddressChange("addressLine", e.target.value)}
                 required
+                value={shippingAddress.addressLine}
+                onChange={(e) => setShippingAddress((s) => ({ ...s, addressLine: e.target.value }))}
               />
               <input
                 className="input-field"
                 placeholder="City"
-                value={shippingAddress.city}
-                onChange={(e) => handleAddressChange("city", e.target.value)}
                 required
+                value={shippingAddress.city}
+                onChange={(e) => setShippingAddress((s) => ({ ...s, city: e.target.value }))}
               />
               <input
                 className="input-field"
                 placeholder="Zip / Postal code"
-                value={shippingAddress.postalCode}
-                onChange={(e) => handleAddressChange("postalCode", e.target.value)}
                 required
+                value={shippingAddress.postalCode}
+                onChange={(e) => setShippingAddress((s) => ({ ...s, postalCode: e.target.value }))}
               />
             </div>
           </section>
