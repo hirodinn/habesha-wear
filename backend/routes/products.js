@@ -29,8 +29,8 @@ function buildProductQuery(q, category) {
 // Top-rated featured products (e.g. limit=3)
 router.get("/featured", async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit, 10) || 3, 10);
-    const query = buildProductQuery(req.query.q, req.query.category);
+    const limit = 3;
+    const query = { ...buildProductQuery(req.query.q, req.query.category), status: "active" };
     const products = await Product.find(query)
       .sort({ ratingAverage: -1, ratingCount: -1 })
       .limit(limit)
@@ -103,8 +103,26 @@ router.get("/:id", async (req, res) => {
 
   try {
     const product = await Product.findOne({ _id: req.params.id });
-    if (product) res.send(product);
-    else res.status(404).json({ success: false, message: "Product Not Found" });
+    if (!product) return res.status(404).json({ success: false, message: "Product Not Found" });
+
+    if (product.status === "active") return res.send(product);
+
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+        const isAdmin = decoded.role === "admin" || decoded.role === "owner";
+        const isOwningVendor =
+          decoded.role === "vendor" &&
+          decoded._id &&
+          product.ownedBy &&
+          String(product.ownedBy) === String(decoded._id);
+
+        if (isAdmin || isOwningVendor) return res.send(product);
+      } catch (_) {}
+    }
+
+    return res.status(404).json({ success: false, message: "Product Not Found" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

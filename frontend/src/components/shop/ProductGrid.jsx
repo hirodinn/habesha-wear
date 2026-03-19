@@ -19,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import { addItemToCart } from "../../redux/cartSlice";
 import productService from "../../services/productService";
 import ProductImageCarousel from "./ProductImageCarousel";
-import RatingStars from "./RatingStars";
 
 const PRODUCTS_PER_PAGE = 12;
 const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
@@ -87,7 +86,7 @@ const ProductCard = ({
             <Tag size={10} /> {product.category || "Item"}
           </span>
         </div>
-        {(!user || user.role !== "vendor") && (
+        {user?.role === "customer" && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -115,9 +114,9 @@ const ProductCard = ({
             {product.name}
           </h3>
           <div className="flex items-center gap-1.5 text-[var(--color-burgundy)] shrink-0">
-            <RatingStars rating={ratingAverage} size={14} />
+            <Star size={14} fill="currentColor" />
             <span className="text-xs font-semibold">
-              {ratingCount > 0 ? Number(ratingAverage).toFixed(1) : "—"}
+              {ratingCount > 0 ? ratingAverage.toFixed(1) : "—"}
             </span>
             {ratingCount > 0 && (
               <span className="text-[10px] text-[var(--text-secondary)]">
@@ -246,7 +245,7 @@ const FeaturedBlock = ({
           <span className="font-bold text-white text-lg">
             {formatNumber(product.price)} Birr
           </span>
-          {(!user || user.role !== "vendor") && (
+          {user?.role === "customer" && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -538,14 +537,10 @@ const ProductGrid = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                       <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
-                        {(!user || user.role !== "vendor") && (
+                        {user?.role === "customer" && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (!user) {
-                                navigate("/login");
-                                return;
-                              }
                               handleAddToCart(product, "featured");
                             }}
                             disabled={addingToCart === product._id || product.stock <= 0}
@@ -578,9 +573,21 @@ const ProductGrid = () => {
                     </div>
                     <div className="relative p-4">
                       <div className="mb-2 flex items-center gap-2">
-                        <RatingStars rating={ratingAverage} size={14} className="text-[var(--text-main)]" />
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              size={14}
+                              className={
+                                s <= Math.round(ratingAverage)
+                                  ? "fill-[var(--color-burgundy)] text-[var(--color-burgundy)]"
+                                  : "fill-transparent text-[var(--border-color)]"
+                              }
+                            />
+                          ))}
+                        </div>
                         <span className="text-xs font-semibold text-[var(--text-main)]">
-                          {ratingCount > 0 ? Number(ratingAverage).toFixed(1) : "—"}
+                          {ratingCount > 0 ? ratingAverage.toFixed(1) : "—"}
                         </span>
                         <span className="text-[10px] text-[var(--text-secondary)]">
                           ({formatNumber(ratingCount)})

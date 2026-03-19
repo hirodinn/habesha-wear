@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   Users,
   Search,
   Trash2,
@@ -11,10 +13,12 @@ import {
 } from "lucide-react";
 
 const AdminUsersView = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedUserId, setExpandedUserId] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -74,6 +78,14 @@ const AdminUsersView = () => {
             <Users className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-(--text-secondary) hover:text-[var(--color-burgundy)]"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </button>
             <h1 className="text-4xl font-bold text-(--text-main)">
               User Management
             </h1>
@@ -129,56 +141,99 @@ const AdminUsersView = () => {
             </thead>
             <tbody className="divide-y divide-(--border-color)">
               {filteredUsers.map((user) => (
-                <tr
-                  key={user._id}
-                  className="group hover:bg-[var(--color-burgundy)]/5 transition-colors"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-(--bg-main) border border-(--border-color)">
-                        {user.role === "admin" || user.role === "owner" ? (
-                          <Shield size={16} className="text-[var(--color-burgundy)]" />
-                        ) : (
-                          <User size={16} className="text-gray-400" />
-                        )}
+                <Fragment key={user._id}>
+                  <tr
+                    onDoubleClick={() =>
+                      setExpandedUserId((prev) => (prev === user._id ? null : user._id))
+                    }
+                    className={`group transition-colors cursor-pointer ${
+                      expandedUserId === user._id
+                        ? "bg-[var(--color-burgundy)]/10"
+                        : "hover:bg-[var(--color-burgundy)]/5"
+                    }`}
+                    title="Double-click to expand/collapse"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-(--bg-main) border border-(--border-color)">
+                          {user.role === "admin" || user.role === "owner" ? (
+                            <Shield size={16} className="text-[var(--color-burgundy)]" />
+                          ) : (
+                            <User size={16} className="text-gray-400" />
+                          )}
+                        </div>
+                        <span className="font-bold text-sm text-(--text-main)">{user.name}</span>
                       </div>
-                      <span className="font-bold text-sm text-(--text-main)">
-                        {user.name}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-(--text-secondary) text-sm">
+                        <Mail size={14} />
+                        {user.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                          user.role === "owner"
+                            ? "bg-[var(--color-burgundy)]/20 text-[var(--color-burgundy)] border-[var(--color-burgundy)]/30"
+                            : user.role === "admin"
+                            ? "bg-[var(--color-burgundy)]/15 text-[var(--color-burgundy)] border-[var(--color-burgundy)]/30"
+                            : user.role === "vendor"
+                            ? "bg-amber-100 text-amber-700 border-amber-200"
+                            : "bg-gray-100 text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {user.role}
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-(--text-secondary) text-sm">
-                      <Mail size={14} />
-                      {user.email}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
-                        user.role === "owner"
-                          ? "bg-[var(--color-burgundy)]/20 text-[var(--color-burgundy)] border-[var(--color-burgundy)]/30"
-                          : user.role === "admin"
-                          ? "bg-[var(--color-burgundy)]/15 text-[var(--color-burgundy)] border-[var(--color-burgundy)]/30"
-                          : user.role === "vendor"
-                          ? "bg-amber-100 text-amber-700 border-amber-200"
-                          : "bg-gray-100 text-gray-700 border-gray-200"
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleDeleteUser(user)}
-                      disabled={loading || user.role === "owner"}
-                      className="p-2 text-(--text-secondary) hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                      title="Delete User"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleDeleteUser(user)}
+                        disabled={loading || user.role === "owner"}
+                        className="p-2 text-(--text-secondary) hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        title="Delete User"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                  {expandedUserId === user._id && (
+                    <tr className="bg-[var(--color-burgundy)]/5 animate-fade-in">
+                      <td colSpan="4" className="px-6 py-6 border-b border-(--border-color)">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                            <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Full Name</span>
+                            <span className="text-sm font-semibold text-(--text-main)">{user.name || "N/A"}</span>
+                          </div>
+                          <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                            <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Email</span>
+                            <span className="text-sm text-(--text-main)">{user.email || "N/A"}</span>
+                          </div>
+                          <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                            <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Role</span>
+                            <span className="text-sm font-semibold text-(--text-main)">{user.role || "N/A"}</span>
+                          </div>
+                          <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                            <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">User ID</span>
+                            <span className="font-mono text-xs text-(--text-main)">{user._id}</span>
+                          </div>
+                          <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                            <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Joined</span>
+                            <span className="text-sm text-(--text-main)">
+                              {user.createdAt ? new Date(user.createdAt).toLocaleString() : "N/A"}
+                            </span>
+                          </div>
+                          <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                            <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">Last Updated</span>
+                            <span className="text-sm text-(--text-main)">
+                              {user.updatedAt ? new Date(user.updatedAt).toLocaleString() : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
               {filteredUsers.length === 0 && (
                 <tr>

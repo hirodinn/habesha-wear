@@ -1,6 +1,8 @@
 import { useState, useEffect, Fragment } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   Check,
   X,
   Clock,
@@ -13,7 +15,9 @@ import {
 import ProductImageCarousel from "../../components/shop/ProductImageCarousel";
 
 const AdminPendingView = () => {
+  const navigate = useNavigate();
   const [pendingProducts, setPendingProducts] = useState([]);
+  const [usersById, setUsersById] = useState({});
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,6 +36,24 @@ const AdminPendingView = () => {
 
   useEffect(() => {
     fetchPendingProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("/api/users", { withCredentials: true });
+        const list = Array.isArray(response.data) ? response.data : [];
+        const map = list.reduce((acc, u) => {
+          if (u?._id) acc[String(u._id)] = u;
+          return acc;
+        }, {});
+        setUsersById(map);
+      } catch {
+        setUsersById({});
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   const handleApprove = async (product) => {
@@ -73,6 +95,28 @@ const AdminPendingView = () => {
         p.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const getOwnerId = (product) => {
+    const owner = product?.ownedBy;
+    if (!owner) return "N/A";
+    if (typeof owner === "string") return owner;
+    return String(owner._id || owner.id || "N/A");
+  };
+
+  const getOwnerName = (product) => {
+    const owner = product?.ownedBy;
+    if (typeof owner === "object" && owner?.name) return owner.name;
+    const id = getOwnerId(product);
+    if (id && usersById[id]?.name) return usersById[id].name;
+    return "Unknown Vendor";
+  };
+
+  const getOwnerEmail = (product) => {
+    const owner = product?.ownedBy;
+    if (typeof owner === "object" && owner?.email) return owner.email;
+    const id = getOwnerId(product);
+    return usersById[id]?.email || "N/A";
+  };
+
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -81,6 +125,14 @@ const AdminPendingView = () => {
             <Clock className="w-8 h-8 text-[var(--color-burgundy)]" />
           </div>
           <div>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-(--text-secondary) hover:text-[var(--color-burgundy)]"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </button>
             <h1 className="text-4xl font-bold text-(--text-main)">
               Pending Approvals
             </h1>
@@ -141,11 +193,17 @@ const AdminPendingView = () => {
               {filteredProducts.map((product) => (
                 <Fragment key={product._id}>
                   <tr
+                    onDoubleClick={() =>
+                      setExpandedProductId((prev) =>
+                        prev === product._id ? null : product._id
+                      )
+                    }
                     className={`group transition-colors ${
                       expandedProductId === product._id
                         ? "bg-[var(--color-burgundy)]/10"
                         : "hover:bg-[var(--color-burgundy)]/5"
                     }`}
+                    title="Double-click to expand/collapse"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -247,8 +305,16 @@ const AdminPendingView = () => {
                             <p className="text-sm text-(--text-main) leading-relaxed">
                               {product.description}
                             </p>
-                            <div className="pt-4 flex gap-4">
-                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color) sm:col-span-2">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Property Name
+                                </span>
+                                <span className="text-sm font-semibold text-(--text-main)">
+                                  {product.name}
+                                </span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color) sm:col-span-2">
                                 <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
                                   Request ID
                                 </span>
@@ -258,10 +324,26 @@ const AdminPendingView = () => {
                               </div>
                               <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
                                 <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
-                                  Vendor ID
+                                  Owner Name
+                                </span>
+                                <span className="text-sm font-semibold text-(--text-main)">
+                                  {getOwnerName(product)}
+                                </span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Owner Email
+                                </span>
+                                <span className="text-xs text-(--text-main) break-all">
+                                  {getOwnerEmail(product)}
+                                </span>
+                              </div>
+                              <div className="bg-(--bg-main) p-3 rounded-xl border border-(--border-color)">
+                                <span className="block text-[10px] uppercase font-bold text-(--text-secondary) mb-1">
+                                  Owner ID
                                 </span>
                                 <span className="font-mono text-xs text-(--text-main)">
-                                  {product.ownedBy || "N/A"}
+                                  {getOwnerId(product)}
                                 </span>
                               </div>
                             </div>
