@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     enum: ["customer", "admin", "vendor", "owner"],
     default: "customer",
   },
-  cartItems: { type: Array },
 });
 
 userSchema.methods.getAuthToken = function () {
@@ -29,7 +28,6 @@ export function validateNewUser(user) {
     email: Joi.string().email().required(),
     role: Joi.string().valid("customer", "vendor", "admin").default("customer"),
     password: Joi.string().min(8).required(),
-    cartItems: Joi.array(),
   });
   return schema.validate(user || {});
 }

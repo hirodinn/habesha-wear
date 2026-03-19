@@ -82,11 +82,16 @@ export const removeFromCart = async (productId) => {
   const carts = await fetchCart();
   const cart = Array.isArray(carts) ? carts[0] : carts;
 
-  if (!cart) return null;
+  if (!cart) return { products: [] };
 
   const updatedProducts = cart.products.filter(
     (p) => getProductId(p.productId) !== String(productId)
   );
+
+  if (updatedProducts.length === 0) {
+    await axios.delete(API_URL, withCreds);
+    return { products: [] };
+  }
 
   const response = await axios.put(API_URL, { products: normalizeProductsForPayload(updatedProducts) }, withCreds);
   return response.data;

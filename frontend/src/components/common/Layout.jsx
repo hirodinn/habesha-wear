@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Header from "./Header";
+import Toast from "./Toast";
 
 const Layout = ({ children }) => {
   const darkMode = useSelector((state) => state.auth.darkMode);
@@ -22,6 +23,7 @@ const Layout = ({ children }) => {
       </div>
 
       <Header />
+      <Toast />
 
       <main className="flex-1 w-full container mx-auto px-4 sm:px-6 py-8 relative z-10">
         {children}

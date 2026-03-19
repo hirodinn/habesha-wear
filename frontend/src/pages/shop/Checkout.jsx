@@ -3,8 +3,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Smartphone, Wallet } from "lucide-react";
 import { clearCart } from "../../redux/cartSlice";
+import { showToast } from "../../redux/toastSlice";
 import { removeCart } from "../../services/cartService";
 import orderService from "../../services/orderService";
+import productService from "../../services/productService";
+
+const buildStockErrorMessage = (errors) => {
+  if (!errors?.length) return "";
+  const lines = errors.map(
+    (e) => `• ${e.name}: you have ${e.requested} in cart but only ${e.available} in stock.`
+  );
+  return "Some items exceed available stock. Please update your cart.\n\n" + lines.join("\n");
+};
 
 const Checkout = () => {
   const { items: cartItems } = useSelector((state) => state.cart);
@@ -30,6 +40,20 @@ const Checkout = () => {
     if (user?.email) setShippingAddress((s) => ({ ...s, email: user.email }));
   }, [user?.email]);
 
+  useEffect(() => {
+    if (!user || !cartItems?.length) return;
+    let cancelled = false;
+    (async () => {
+      const { valid, errors } = await productService.validateCartStock(cartItems);
+      if (cancelled) return;
+      if (!valid) {
+        dispatch(showToast({ type: "error", message: buildStockErrorMessage(errors) }));
+        navigate("/cart", { replace: true });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.role, cartItems.length, dispatch, navigate]);
+
   const subtotal = useMemo(
     () => cartItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0),
     [cartItems]
@@ -45,6 +69,14 @@ const Checkout = () => {
 
     if (!cartItems.length) {
       setMessage("Your cart is empty.");
+      return;
+    }
+
+    const { valid, errors } = await productService.validateCartStock(cartItems);
+    if (!valid) {
+      setMessage("Some items exceed available stock. Please update your cart.");
+      dispatch(showToast({ type: "error", message: buildStockErrorMessage(errors) }));
+      navigate("/cart", { replace: true });
       return;
     }
 

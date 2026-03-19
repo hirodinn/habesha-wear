@@ -66,6 +66,37 @@ const productService = {
     );
     return response.data;
   },
+  /**
+   * Validates cart items against current product stock.
+   * @param {Array<{ productId, quantity, name? }>} cartItems
+   * @returns {Promise<{ valid: boolean, errors: Array<{ name, requested, available }> }>}
+   */
+  validateCartStock: async (cartItems) => {
+    const errors = [];
+    for (const item of cartItems || []) {
+      const id = item?.productId;
+      const requested = Number(item?.quantity) || 0;
+      if (!id || requested <= 0) continue;
+      try {
+        const product = await productService.fetchProductById(id);
+        const available = Number(product?.stock) ?? 0;
+        if (requested > available) {
+          errors.push({
+            name: product?.name || item?.name || "Product",
+            requested,
+            available,
+          });
+        }
+      } catch {
+        errors.push({
+          name: item?.name || "Product",
+          requested,
+          available: 0,
+        });
+      }
+    }
+    return { valid: errors.length === 0, errors };
+  },
 };
 
 export default productService;

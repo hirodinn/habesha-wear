@@ -275,9 +275,7 @@ const ProductDetail = () => {
                   : "bg-red-500/15 text-red-600 dark:text-red-400"
               }`}
             >
-              {product.stock > 0
-                ? `${formatNumber(product.stock)} in stock`
-                : "Sold out"}
+              {product.stock > 0 ? "In stock" : "Sold out"}
             </span>
           </div>
 

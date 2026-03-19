@@ -14,12 +14,24 @@ import {
   getCart,
   setItems,
 } from "../../redux/cartSlice";
-import { useEffect } from "react";
+import { showToast } from "../../redux/toastSlice";
+import productService from "../../services/productService";
+import { useEffect, useState } from "react";
+
+const buildStockErrorMessage = (errors) => {
+  if (!errors?.length) return "";
+  const lines = errors.map(
+    (e) => `• ${e.name}: you have ${e.requested} in cart but only ${e.available} in stock.`
+  );
+  return "Some items exceed available stock. Please update your cart.\n\n" + lines.join("\n");
+};
+
 const Cart = () => {
   const { items: cartItems } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [checkingStock, setCheckingStock] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -43,8 +55,31 @@ const Cart = () => {
     );
   };
 
-  const handleCheckout = () => {
-    navigate("/checkout");
+  const handleCheckout = async () => {
+    if (!cartItems.length) return;
+    setCheckingStock(true);
+    try {
+      const { valid, errors } = await productService.validateCartStock(cartItems);
+      if (!valid) {
+        dispatch(
+          showToast({
+            type: "error",
+            message: buildStockErrorMessage(errors),
+          })
+        );
+        return;
+      }
+      navigate("/checkout");
+    } catch (err) {
+      dispatch(
+        showToast({
+          type: "error",
+          message: "Could not verify stock. Please try again.",
+        })
+      );
+    } finally {
+      setCheckingStock(false);
+    }
   };
 
   if (user && user.role !== "customer") {
@@ -238,15 +273,19 @@ const Cart = () => {
               <button
                 className="btn-primary w-full py-4 flex items-center justify-center gap-2 group mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
                 onClick={handleCheckout}
-                disabled={cartItems.length === 0}
+                disabled={cartItems.length === 0 || checkingStock}
               >
-                <>
-                  Proceed to Checkout
-                  <CreditCard
-                    size={18}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </>
+                {checkingStock ? (
+                  "Checking stock..."
+                ) : (
+                  <>
+                    Proceed to Checkout
+                    <CreditCard
+                      size={18}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </>
+                )}
               </button>
 
               <p className="text-[10px] text-center text-[var(--text-secondary)]">
