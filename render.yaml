@@ -4,7 +4,6 @@ services:
     runtime: node
     rootDir: backend
     buildCommand: npm install
-    preDeployCommand: npm run seed:run
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -12,6 +11,12 @@ services:
         value: production
       - key: PORT
         value: 3000
+      - key: SEED_ON_BOOT
+        value: true
+      - key: SEED_FILE_PATH
+        value: seed/data.json
+      - key: SEED_FLAG_KEY
+        value: initial_seed_v1_done
       - key: MONGO_URI
         sync: false
       - key: JWT_PRIVATE_KEY
