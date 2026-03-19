@@ -24,10 +24,9 @@ function normalizeIncomingProducts(products) {
     .filter((item) => item.productId && Number.isFinite(item.quantity));
 }
 
-function validateNormalizedProducts(products) {
-  if (!Array.isArray(products) || products.length === 0) {
-    return "Cart products are required.";
-  }
+function validateNormalizedProducts(products, allowEmpty = false) {
+  if (!Array.isArray(products)) return "Cart products are required.";
+  if (products.length === 0) return allowEmpty ? null : "Cart products are required.";
 
   const invalid = products.find(
     (p) => !mongoose.Types.ObjectId.isValid(p.productId) || !Number.isInteger(p.quantity) || p.quantity < 1
@@ -196,7 +195,7 @@ router.put("/", async (req, res) => {
     return res.status(401).json({ success: false, message: "Access Denied" });
 
   const normalizedProducts = normalizeIncomingProducts(req.body?.products);
-  const normalizedProductsError = validateNormalizedProducts(normalizedProducts);
+  const normalizedProductsError = validateNormalizedProducts(normalizedProducts, true);
   if (normalizedProductsError) {
     return res.status(400).json({ success: false, message: normalizedProductsError });
   }

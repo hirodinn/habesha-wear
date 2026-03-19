@@ -8,7 +8,7 @@ import { Sun, Moon, User, LogOut, LogIn, ShoppingCart, Store } from "lucide-reac
 const Header = () => {
   const { user, darkMode } = useSelector((state) => state.auth);
   const { items: cartItems } = useSelector((state) => state.cart);
-  const cartCount = cartItems.reduce((total, item) => total + (Number(item.quantity) || 0), 0);
+  const cartCount = cartItems.length;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();

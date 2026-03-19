@@ -193,7 +193,14 @@ const Cart = () => {
 
                   <button
                     onClick={() => {
-                      dispatch(removeItem(item.productId));
+                      const productId = String(item.productId ?? "");
+                      const nextItems = cartItems.filter(
+                        (i) => String(i.productId ?? "") !== productId
+                      );
+                      dispatch(setItems(nextItems));
+                      dispatch(removeItem(productId)).catch(() => {
+                        dispatch(getCart());
+                      });
                     }}
                     className="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
                   >

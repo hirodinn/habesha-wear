@@ -23,6 +23,45 @@ import ProductImageCarousel from "./ProductImageCarousel";
 const PRODUCTS_PER_PAGE = 12;
 const formatNumber = (value) => Number(value || 0).toLocaleString("en-US");
 
+const ratingToFill = (rating, starIndex) => {
+  const r = Number(rating) || 0;
+  if (r >= starIndex) return 100;
+  if (r <= starIndex - 1) return 0;
+  return (r - (starIndex - 1)) * 100;
+};
+
+const RatingStars = ({ rating, size = 14, className = "" }) => {
+  const r = Number(rating) || 0;
+  return (
+    <div className={`flex items-center gap-0.5 ${className}`}>
+      {[1, 2, 3, 4, 5].map((s) => {
+        const fill = ratingToFill(r, s);
+        return (
+          <span key={s} className="relative inline-block shrink-0" style={{ width: size, height: size }}>
+            <Star
+              size={size}
+              className="absolute inset-0 text-[var(--border-color)] opacity-40"
+              fill="currentColor"
+            />
+            {fill > 0 && (
+              <span
+                className="absolute inset-0 overflow-hidden"
+                style={{ width: `${fill}%` }}
+              >
+                <Star
+                  size={size}
+                  className="text-[var(--color-burgundy)]"
+                  fill="currentColor"
+                />
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
+
 const ProductCard = ({
   product,
   onAddToCart,
@@ -114,9 +153,9 @@ const ProductCard = ({
             {product.name}
           </h3>
           <div className="flex items-center gap-1.5 text-[var(--color-burgundy)] shrink-0">
-            <Star size={14} fill="currentColor" />
+            <RatingStars rating={ratingAverage} size={14} />
             <span className="text-xs font-semibold">
-              {ratingCount > 0 ? ratingAverage.toFixed(1) : "—"}
+              {ratingCount > 0 ? Number(ratingAverage).toFixed(1) : "—"}
             </span>
             {ratingCount > 0 && (
               <span className="text-[10px] text-[var(--text-secondary)]">
@@ -577,21 +616,9 @@ const ProductGrid = () => {
                     </div>
                     <div className="relative p-4">
                       <div className="mb-2 flex items-center gap-2">
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <Star
-                              key={s}
-                              size={14}
-                              className={
-                                s <= Math.round(ratingAverage)
-                                  ? "fill-[var(--color-burgundy)] text-[var(--color-burgundy)]"
-                                  : "fill-transparent text-[var(--border-color)]"
-                              }
-                            />
-                          ))}
-                        </div>
+                        <RatingStars rating={ratingAverage} size={14} className="text-[var(--text-main)]" />
                         <span className="text-xs font-semibold text-[var(--text-main)]">
-                          {ratingCount > 0 ? ratingAverage.toFixed(1) : "—"}
+                          {ratingCount > 0 ? Number(ratingAverage).toFixed(1) : "—"}
                         </span>
                         <span className="text-[10px] text-[var(--text-secondary)]">
                           ({formatNumber(ratingCount)})

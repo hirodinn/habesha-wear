@@ -103,11 +103,14 @@ export const removeItem = createAsyncThunk(
   "cart/removeItem",
   async (productId, { rejectWithValue }) => {
     try {
-      const cart = await cartService.removeFromCart(productId);
+      const id = String(productId ?? "").trim() || getProductId(productId);
+      if (!id) return rejectWithValue({ message: "Product ID is required" });
 
-      const populatedProducts = mapCartItems(cart.products || []);
+      const cart = await cartService.removeFromCart(id);
+      const products = cart?.products ?? [];
+      const populatedProducts = mapCartItems(products);
 
-      return { ...cart, products: populatedProducts };
+      return { ...(cart || {}), products: populatedProducts };
     } catch (err) {
       return rejectWithValue(err.response?.data || { message: "Failed to remove cart item" });
     }
@@ -143,42 +146,42 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Add/Update/Remove actions update the entire items array from response
-      .addMatcher(
-        (action) =>
-          [
-            addItemToCart.fulfilled,
-            updateItemQuantity.fulfilled,
-            removeItem.fulfilled,
-          ].includes(action.type),
-        (state, action) => {
-          state.loading = false;
-          state.items = action.payload?.products || [];
-        }
-      )
-      .addMatcher(
-        (action) =>
-          [
-            addItemToCart.pending,
-            updateItemQuantity.pending,
-            removeItem.pending,
-          ].includes(action.type),
-        (state) => {
-          state.loading = true;
-        }
-      )
-      .addMatcher(
-        (action) =>
-          [
-            addItemToCart.rejected,
-            updateItemQuantity.rejected,
-            removeItem.rejected,
-          ].includes(action.type),
-        (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
-        }
-      );
+      // Add to cart
+      .addCase(addItemToCart.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addItemToCart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload?.products || [];
+      })
+      .addCase(addItemToCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Update item quantity
+      .addCase(updateItemQuantity.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateItemQuantity.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload?.products || [];
+      })
+      .addCase(updateItemQuantity.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Remove item
+      .addCase(removeItem.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeItem.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload?.products || [];
+      })
+      .addCase(removeItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
