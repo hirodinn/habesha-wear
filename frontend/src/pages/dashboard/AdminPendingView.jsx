@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import ProductImageCarousel from "../../components/shop/ProductImageCarousel";
 
 const AdminPendingView = () => {
   const [pendingProducts, setPendingProducts] = useState([]);
@@ -20,10 +21,12 @@ const AdminPendingView = () => {
 
   const fetchPendingProducts = async () => {
     try {
-      const response = await axios.get("/api/preproducts");
-      setPendingProducts(response.data);
+      const response = await axios.get("/api/products?status=pending", { withCredentials: true });
+      const data = response.data;
+      setPendingProducts(Array.isArray(data) ? data : data?.products ?? []);
     } catch (error) {
       console.error("Error fetching pending products:", error);
+      setPendingProducts([]);
     }
   };
 
@@ -34,7 +37,7 @@ const AdminPendingView = () => {
   const handleApprove = async (product) => {
     setLoading(true);
     try {
-      await axios.post(`/api/preproducts/${product._id}/approve`);
+      await axios.put(`/api/products/${product._id}/status`, { status: "active" }, { withCredentials: true });
       setActionMessage({ type: "success", text: `Approved "${product.name}" — now live in the shop.` });
       fetchPendingProducts();
     } catch (error) {
@@ -49,12 +52,12 @@ const AdminPendingView = () => {
   };
 
   const handleReject = async (id) => {
-    if (!confirm("Mark this submission as rejected? The vendor will still see it in their portal with rejected status."))
+    if (!confirm("Mark this submission as archived? The vendor will still see it in their portal with archived status."))
       return;
     setLoading(true);
     try {
-      await axios.put(`/api/preproducts/${id}`, { status: "rejected" });
-      setActionMessage({ type: "success", text: "Submission marked as rejected." });
+      await axios.put(`/api/products/${id}/status`, { status: "archived" }, { withCredentials: true });
+      setActionMessage({ type: "success", text: "Submission marked as archived." });
       fetchPendingProducts();
     } catch {
       setActionMessage({ type: "error", text: "Rejection failed." });
@@ -147,17 +150,17 @@ const AdminPendingView = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-(--bg-main) border border-(--border-color) shrink-0">
-                          {product.images?.[0] ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                              <ImageIcon size={20} />
-                            </div>
-                          )}
+                          <ProductImageCarousel
+                            images={product.images}
+                            alt={product.name}
+                            className="w-full h-full"
+                            imageClassName="w-full h-full object-cover"
+                            placeholder={
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <ImageIcon size={20} />
+                              </div>
+                            }
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-sm text-(--text-main) truncate">

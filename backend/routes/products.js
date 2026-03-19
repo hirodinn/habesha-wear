@@ -4,6 +4,7 @@ import {
   validateNewProduct,
   validateProductUpdate,
   validateProductRating,
+  validateProductStatusUpdate,
 } from "../model/product.js";
 import jwt from "jsonwebtoken";
 import { validateId } from "../utils/validateId.js";
@@ -50,6 +51,10 @@ router.get("/", async (req, res) => {
           baseQuery = { ...baseQuery, ownedBy: decoded._id };
         }
       } catch (_) {}
+    }
+    if (req.query.status) {
+      const s = String(req.query.status).toLowerCase();
+      if (["pending", "active", "archived"].includes(s)) baseQuery = { ...baseQuery, status: s };
     }
     const excludeFeatured = req.query.excludeFeatured === "1";
     const pageParam = req.query.page;
@@ -192,6 +197,73 @@ router.put("/:id", async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/** Admin/owner: update product status (pending | active | archived). */
+router.put("/:id/status", async (req, res) => {
+  const token = req.cookies?.token;
+  if (!token)
+    return res.status(401).json({ success: false, message: "Access denied" });
+
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  if (decoded.role !== "admin" && decoded.role !== "owner")
+    return res.status(403).json({ success: false, message: "Only admins can change product status" });
+
+  const err = validateId(req.params.id).error;
+  if (err)
+    return res.status(400).json({ success: false, message: err.details[0].message });
+
+  const { error: statusErr } = validateProductStatusUpdate(req.body);
+  if (statusErr)
+    return res.status(400).json({ success: false, message: statusErr.details[0].message });
+
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+    if (!product)
+      return res.status(404).json({ success: false, message: "Product not found" });
+    return res.send(product);
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+/** Vendor or admin: set product stock (update amount). */
+router.put("/:id/stock", async (req, res) => {
+  const token = req.cookies?.token;
+  if (!token)
+    return res.status(401).json({ success: false, message: "Access denied" });
+
+  const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  const isAdmin = decoded.role === "admin" || decoded.role === "owner";
+  const isVendor = decoded.role === "vendor";
+  if (!isAdmin && !isVendor)
+    return res.status(403).json({ success: false, message: "Only vendor or admin can update stock" });
+
+  const err = validateId(req.params.id).error;
+  if (err)
+    return res.status(400).json({ success: false, message: err.details[0].message });
+
+  const stock = Number(req.body?.stock);
+  if (Number.isNaN(stock) || stock < 0 || !Number.isInteger(stock))
+    return res.status(400).json({ success: false, message: "Valid stock number (integer >= 0) required" });
+
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product)
+      return res.status(404).json({ success: false, message: "Product not found" });
+    if (isVendor && product.ownedBy && product.ownedBy.toString() !== decoded._id)
+      return res.status(403).json({ success: false, message: "You can only update your own product stock" });
+
+    product.stock = stock;
+    await product.save();
+    return res.send(product);
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
   }
 });
 

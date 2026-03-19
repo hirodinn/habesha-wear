@@ -16,6 +16,7 @@ import {
 } from "../../redux/cartSlice";
 import { showToast } from "../../redux/toastSlice";
 import productService from "../../services/productService";
+import ProductImageCarousel from "../../components/shop/ProductImageCarousel";
 import { useEffect, useState } from "react";
 
 const buildStockErrorMessage = (errors) => {
@@ -149,17 +150,17 @@ const Cart = () => {
                 className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 flex flex-col sm:flex-row gap-5 sm:items-center hover:shadow-lg transition-all"
               >
                 <div className="w-full sm:w-28 h-48 sm:h-28 bg-[var(--bg-main)] rounded-xl overflow-hidden flex-shrink-0 border border-[var(--border-color)]">
-                  {item.images?.[0] ? (
-                    <img
-                      src={item.images[0]}
-                      alt={item.name || "Product"}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]">
-                      <ShoppingBag size={32} className="opacity-40" />
-                    </div>
-                  )}
+                  <ProductImageCarousel
+                    images={item.images}
+                    alt={item.name || "Product"}
+                    className="w-full h-full"
+                    imageClassName="w-full h-full object-cover"
+                    placeholder={
+                      <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]">
+                        <ShoppingBag size={32} className="opacity-40" />
+                      </div>
+                    }
+                  />
                 </div>
 
                 <div className="flex-1 space-y-2 min-w-0">

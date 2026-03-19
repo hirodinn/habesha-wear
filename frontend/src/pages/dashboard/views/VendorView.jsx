@@ -1,33 +1,27 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import productService from "../../../services/productService";
 import ProductImageCarousel from "../../../components/shop/ProductImageCarousel";
+import RatingStars from "../../../components/shop/RatingStars";
 import {
   Plus,
   Package,
-  Clock,
   CheckCircle,
   XCircle,
-  ChevronDown,
-  ChevronUp,
   X,
   Loader2,
   Upload,
-  Image as ImageIcon,
   Store,
-  Inbox,
-  ExternalLink,
 } from "lucide-react";
 
-const TAB_LIVE = "live";
-const TAB_SUBMISSIONS = "submissions";
+const STATUS_ALL = "all";
+const STATUS_ACTIVE = "active";
+const STATUS_PENDING = "pending";
+const STATUS_ARCHIVED = "archived";
 
 const VendorView = () => {
   const { user } = useSelector((state) => state.auth);
-  const [activeTab, setActiveTab] = useState(TAB_LIVE);
-  const [preProducts, setPreProducts] = useState([]);
   const [vendorProducts, setVendorProducts] = useState([]);
   const [loadingVendorProducts, setLoadingVendorProducts] = useState(true);
 
@@ -40,6 +34,14 @@ const VendorView = () => {
       return ownerId === id;
     });
   }, [vendorProducts, user]);
+
+  /** Status filter: All, Active, Pending, Archived */
+  const [statusFilter, setStatusFilter] = useState(STATUS_ALL);
+  const filteredProducts = useMemo(() => {
+    if (statusFilter === STATUS_ALL) return myLiveProducts;
+    return myLiveProducts.filter((p) => (p.status || "active") === statusFilter);
+  }, [myLiveProducts, statusFilter]);
+
   const [showForm, setShowForm] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -52,13 +54,9 @@ const VendorView = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
-  const [expandedProductId, setExpandedProductId] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [submissionFilter, setSubmissionFilter] = useState("all"); // "all" | "pending" | "rejected"
-
-  useEffect(() => {
-    fetchPreProducts();
-  }, []);
+  const [updatingStockId, setUpdatingStockId] = useState(null);
+  const [editStockValue, setEditStockValue] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -89,12 +87,35 @@ const VendorView = () => {
     load();
   }, []);
 
-  const fetchPreProducts = async () => {
+  const refreshVendorProducts = async () => {
     try {
-      const response = await axios.get("/api/preproducts");
-      setPreProducts(response.data);
-    } catch (error) {
-      console.error("Error fetching pre-products:", error);
+      const list = await productService.fetchVendorProducts();
+      setVendorProducts(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error("Error refreshing vendor products:", err);
+    }
+  };
+
+  const handleUpdateStock = async (productId, newStock) => {
+    const num = parseInt(newStock, 10);
+    if (Number.isNaN(num) || num < 0) {
+      setMessage({ type: "error", text: "Enter a valid stock amount (0 or more)." });
+      return;
+    }
+    setUpdatingStockId(productId);
+    setMessage(null);
+    try {
+      await productService.updateProductStock(productId, num);
+      setMessage({ type: "success", text: "Stock updated." });
+      setEditStockValue("");
+      setUpdatingStockId(null);
+      await refreshVendorProducts();
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Failed to update stock.",
+      });
+      setUpdatingStockId(null);
     }
   };
 
@@ -181,7 +202,7 @@ const VendorView = () => {
       });
       setSelectedImages([]);
       setImagePreviews([]);
-      fetchPreProducts();
+      refreshVendorProducts();
     } catch (error) {
       setMessage({
         type: "error",
@@ -202,6 +223,7 @@ const VendorView = () => {
           border: "border-yellow-500",
         };
       case "accepted":
+      case "active":
         return {
           badge:
             "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-500/20",
@@ -209,6 +231,7 @@ const VendorView = () => {
           border: "border-green-500",
         };
       case "rejected":
+      case "archived":
         return {
           badge:
             "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-500/20",
@@ -225,17 +248,6 @@ const VendorView = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case "accepted":
-        return <CheckCircle size={14} />;
-      case "rejected":
-        return <XCircle size={14} />;
-      default:
-        return <Clock size={14} />;
-    }
-  };
-
   return (
     <div className="space-y-8 animate-fade-in relative">
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-(--border-color) pb-6">
@@ -249,11 +261,7 @@ const VendorView = () => {
         </div>
 
         <button
-          onClick={() => {
-            const next = !showForm;
-            setShowForm(next);
-            if (next) setActiveTab(TAB_SUBMISSIONS);
-          }}
+          onClick={() => setShowForm((v) => !v)}
           className="btn-primary flex items-center gap-2"
         >
           {showForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
@@ -278,98 +286,118 @@ const VendorView = () => {
         </div>
       )}
 
-      {/* Tabs: Live | Submissions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex rounded-xl bg-(--bg-card) border border-(--border-color) p-1 w-fit">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-medium text-(--text-secondary)">Status:</span>
+        {[
+          { value: STATUS_ALL, label: "All" },
+          { value: STATUS_ACTIVE, label: "Active" },
+          { value: STATUS_PENDING, label: "Pending" },
+          { value: STATUS_ARCHIVED, label: "Archived" },
+        ].map(({ value, label }) => (
           <button
+            key={value}
             type="button"
-            onClick={() => setActiveTab(TAB_LIVE)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              activeTab === TAB_LIVE
-                ? "bg-[var(--color-burgundy)] text-white shadow-sm"
-                : "text-(--text-secondary) hover:text-(--text-main) hover:bg-(--bg-main)"
+            onClick={() => setStatusFilter(value)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              statusFilter === value
+                ? "bg-[var(--color-burgundy)] text-white"
+                : "bg-(--bg-card) text-(--text-secondary) border border-(--border-color) hover:border-[var(--color-burgundy)]/30"
             }`}
           >
-            <Store size={18} />
-            My live products
-            <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
-              activeTab === TAB_LIVE ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
-            }`}>
-              {myLiveProducts.length}
-            </span>
+            {label}
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab(TAB_SUBMISSIONS)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              activeTab === TAB_SUBMISSIONS
-                ? "bg-[var(--color-burgundy)] text-white shadow-sm"
-                : "text-(--text-secondary) hover:text-(--text-main) hover:bg-(--bg-main)"
-            }`}
-          >
-            <Inbox size={18} />
-            Submissions
-            <span className={`min-w-[1.25rem] h-5 px-1.5 rounded-md flex items-center justify-center text-xs ${
-              activeTab === TAB_SUBMISSIONS ? "bg-white/20" : "bg-(--bg-main) text-(--text-secondary)"
-            }`}>
-              {preProducts.length}
-            </span>
-          </button>
-        </div>
+        ))}
       </div>
 
-      {/* Tab content: My live products (vendor-owned only) */}
-      {activeTab === TAB_LIVE && (
-        <div className="animate-fade-in">
-          {loadingVendorProducts ? (
-            <div className="flex items-center justify-center py-20 rounded-2xl bg-(--bg-card) border border-(--border-color)">
-              <Loader2 className="w-10 h-10 text-[var(--color-burgundy)] animate-spin" />
-            </div>
-          ) : myLiveProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {myLiveProducts.map((product) => (
+      <div className="animate-fade-in">
+        {loadingVendorProducts ? (
+          <div className="flex items-center justify-center py-20 rounded-2xl bg-(--bg-card) border border-(--border-color)">
+            <Loader2 className="w-10 h-10 text-[var(--color-burgundy)] animate-spin" />
+          </div>
+        ) : filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {filteredProducts.map((product) => (
                 <div
                   key={product._id}
-                  className="group rounded-2xl border border-(--border-color) bg-(--bg-card) overflow-hidden hover:shadow-xl hover:shadow-[var(--color-burgundy)]/5 hover:border-[var(--color-burgundy)]/20 transition-all duration-300"
+                  className="group rounded-2xl border border-(--border-color) bg-(--bg-card) overflow-hidden hover:border-[var(--color-burgundy)]/25 transition-colors duration-300"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden bg-(--bg-main)">
-                    {product.images?.[0] ? (
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
-                        <Package size={48} className="opacity-30" />
-                      </div>
-                    )}
-                    <div className="absolute top-3 left-3">
+                    <ProductImageCarousel
+                      images={product.images}
+                      alt={product.name}
+                      className="w-full h-full"
+                      imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      placeholder={
+                        <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
+                          <Package size={48} className="opacity-30" />
+                        </div>
+                      }
+                    />
+                    <div className="absolute top-3 left-3 z-10">
                       <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/90 dark:bg-black/70 backdrop-blur-sm text-(--text-main) border border-(--border-color)">
                         {product.category}
                       </span>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase ${getStatusColor(product.status).badge}`}>
+                        {product.status || "active"}
+                      </span>
+                    </div>
                   </div>
                   <div className="p-4">
                     <h3 className="font-display font-bold text-(--text-main) text-lg truncate mb-1">{product.name}</h3>
-                    <p className="text-(--text-secondary) text-sm line-clamp-2 mb-3">{product.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <p className="text-(--text-secondary) text-sm line-clamp-2 mb-2">{product.description}</p>
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <RatingStars rating={Number(product.ratingAverage || 0)} size={14} />
+                      <span className="text-xs font-semibold text-(--text-main)">
+                        {Number(product.ratingCount || 0) > 0
+                          ? `${Number(product.ratingAverage || 0).toFixed(1)} (${Number(product.ratingCount)} reviews)`
+                          : "No ratings yet"}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-3 items-center">
                       <span className="px-2 py-1 rounded-lg text-xs font-medium bg-(--bg-main) text-(--text-secondary) border border-(--border-color)">
                         Stock: {product.stock}
                       </span>
+                      {updatingStockId === product._id ? (
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <input
+                            type="number"
+                            min="0"
+                            className="w-16 rounded border border-(--border-color) bg-(--input-bg) px-2 py-1 text-(--text-main) text-xs"
+                            value={editStockValue}
+                            onChange={(e) => setEditStockValue(e.target.value)}
+                            placeholder={product.stock}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateStock(product._id, editStockValue)}
+                            className="px-2 py-1 rounded bg-[var(--color-burgundy)] text-white text-xs font-medium"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setUpdatingStockId(null); setEditStockValue(""); }}
+                            className="text-(--text-secondary) hover:text-(--text-main) text-xs"
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => { setUpdatingStockId(product._id); setEditStockValue(String(product.stock ?? 0)); }}
+                          className="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-burgundy)]/10 text-[var(--color-burgundy)] border border-[var(--color-burgundy)]/20 hover:bg-[var(--color-burgundy)]/20"
+                        >
+                          Update amount
+                        </button>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-start">
                       <span className="font-bold text-lg text-[var(--color-burgundy)]">
                         {Number(product.price || 0).toLocaleString()} Birr
                       </span>
-                      <Link
-                        to="/"
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-burgundy)] hover:underline"
-                      >
-                        View in shop
-                        <ExternalLink size={14} />
-                      </Link>
                     </div>
                   </div>
                 </div>
@@ -378,11 +406,15 @@ const VendorView = () => {
           ) : (
             <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
               <Store className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
-              <p className="text-(--text-main) font-semibold mb-1">No products live yet</p>
-              <p className="text-(--text-secondary) text-sm mb-4">Products you own appear here after approval. Submit items for review to get started.</p>
+              <p className="text-(--text-main) font-semibold mb-1">
+                {myLiveProducts.length === 0 ? "No products live yet" : `No products match "${statusFilter}"`}
+              </p>
+              <p className="text-(--text-secondary) text-sm mb-4">
+                {myLiveProducts.length === 0 ? "Products you own appear here after approval. Submit items for review to get started." : "Try another status filter."}
+              </p>
               <button
                 type="button"
-                onClick={() => { setShowForm(true); setActiveTab(TAB_SUBMISSIONS); }}
+                onClick={() => setShowForm(true)}
                 className="btn-primary inline-flex items-center gap-2"
               >
                 <Plus size={18} />
@@ -390,8 +422,7 @@ const VendorView = () => {
               </button>
             </div>
           )}
-        </div>
-      )}
+      </div>
 
       {showForm && (
         <div className="card-standard p-6 md:p-8 animate-fade-in shadow-xl">
@@ -560,147 +591,6 @@ const VendorView = () => {
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      {/* Tab content: Submissions (pre-products by status) */}
-      {activeTab === TAB_SUBMISSIONS && (
-        <div className="animate-fade-in">
-          {preProducts.length > 0 ? (
-            <>
-              {/* Filter: All | Pending | Rejected */}
-              <div className="flex flex-wrap items-center gap-2 mb-6">
-                <span className="text-sm font-medium text-(--text-secondary) mr-1">Show:</span>
-                {[
-                  { value: "all", label: "All", count: preProducts.length },
-                  { value: "pending", label: "Pending", count: preProducts.filter((p) => p.status === "pending").length },
-                  { value: "rejected", label: "Rejected", count: preProducts.filter((p) => p.status === "rejected").length },
-                ].map(({ value, label, count }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setSubmissionFilter(value)}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      submissionFilter === value
-                        ? "bg-[var(--color-burgundy)] text-white shadow-sm"
-                        : "bg-(--bg-card) text-(--text-secondary) border border-(--border-color) hover:border-[var(--color-burgundy)]/30 hover:text-(--text-main)"
-                    }`}
-                  >
-                    {label}
-                    <span className={`ml-1.5 ${submissionFilter === value ? "opacity-90" : "opacity-70"}`}>({count})</span>
-                  </button>
-                ))}
-              </div>
-
-              {(() => {
-                const filtered = submissionFilter === "all"
-                  ? preProducts
-                  : preProducts.filter((p) => p.status === submissionFilter);
-                if (filtered.length === 0) {
-                  return (
-                    <div className="py-12 text-center rounded-2xl border border-dashed border-(--border-color) bg-(--bg-card) text-(--text-secondary) text-sm">
-                      No {submissionFilter === "all" ? "submissions" : submissionFilter} yet.
-                    </div>
-                  );
-                }
-                return (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                    {filtered.map((product) => (
-                      <div
-                        key={product._id}
-                        className={`group rounded-2xl border overflow-hidden bg-(--bg-card) transition-all duration-300 hover:shadow-xl ${
-                          product.status === "pending"
-                            ? "border-amber-200 dark:border-amber-800/50 hover:border-amber-300 dark:hover:border-amber-700/50"
-                            : "border-red-200 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700/50"
-                        }`}
-                      >
-                        <div className="relative aspect-[4/5] overflow-hidden bg-(--bg-main)">
-                          <ProductImageCarousel
-                            images={product.images}
-                            alt={product.name}
-                            className="w-full h-full"
-                            imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            placeholder={
-                              <div className="w-full h-full flex items-center justify-center text-(--text-secondary)">
-                                <Package size={48} className="opacity-30" />
-                              </div>
-                            }
-                          />
-                          {/* Category: top-left */}
-                          <div className="absolute top-3 left-3 z-10">
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/95 dark:bg-black/80 backdrop-blur-sm text-(--text-main) border border-(--border-color) shadow-sm">
-                              {product.category}
-                            </span>
-                          </div>
-                          {/* Status: top-right */}
-                          <div className="absolute top-3 right-3 z-10">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-md border shadow-sm ${getStatusColor(product.status).badge}`}>
-                              {getStatusIcon(product.status)}
-                              {product.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-display font-bold text-(--text-main) text-lg truncate mb-1">{product.name}</h3>
-                          <p className="text-(--text-secondary) text-sm line-clamp-2 mb-3">{product.description}</p>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-(--bg-main) text-(--text-secondary) border border-(--border-color)">
-                              Stock: {product.stock}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between pt-2 border-t border-(--border-color)">
-                            <span className="font-bold text-lg text-[var(--color-burgundy)]">
-                              {Number(product.price || 0).toLocaleString()} Birr
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setExpandedProductId(expandedProductId === product._id ? null : product._id)}
-                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-burgundy)] hover:underline"
-                            >
-                              {expandedProductId === product._id ? "Less" : "Details"}
-                              {expandedProductId === product._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </button>
-                          </div>
-                          {expandedProductId === product._id && (
-                            <div className="mt-4 pt-4 border-t border-(--border-color) space-y-3">
-                              <p className="text-xs font-bold uppercase tracking-wider text-(--text-secondary)">Gallery ({product.images?.length || 0})</p>
-                              <div className="grid grid-cols-3 gap-2">
-                                {product.images?.map((img, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => window.open(img, "_blank")}
-                                    className="aspect-square rounded-lg overflow-hidden border border-(--border-color) hover:ring-2 hover:ring-[var(--color-burgundy)]/40"
-                                  >
-                                    <img src={img} alt="" className="w-full h-full object-cover" />
-                                  </button>
-                                ))}
-                              </div>
-                              <p className="text-[10px] font-mono text-(--text-secondary) truncate">ID: {product._id}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-            </>
-          ) : (
-            <div className="py-20 text-center rounded-2xl border-2 border-dashed border-(--border-color) bg-(--bg-card)">
-              <Inbox className="w-14 h-14 mx-auto mb-4 text-(--text-secondary) opacity-40" />
-              <p className="text-(--text-main) font-semibold mb-1">No submissions yet</p>
-              <p className="text-(--text-secondary) text-sm mb-4">Submit a product for review to see it here.</p>
-              <button
-                type="button"
-                onClick={() => setShowForm(true)}
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                <Plus size={18} />
-                New submission
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

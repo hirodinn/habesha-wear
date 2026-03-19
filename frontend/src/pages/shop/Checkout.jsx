@@ -7,6 +7,7 @@ import { showToast } from "../../redux/toastSlice";
 import { removeCart } from "../../services/cartService";
 import orderService from "../../services/orderService";
 import productService from "../../services/productService";
+import ProductImageCarousel from "../../components/shop/ProductImageCarousel";
 
 const buildStockErrorMessage = (errors) => {
   if (!errors?.length) return "";
@@ -301,16 +302,16 @@ const Checkout = () => {
           <div className="space-y-4">
             {cartItems.map((item) => (
               <div key={item.productId} className="flex items-start gap-3 border-b border-[var(--border-color)] pb-3">
-                <div className="w-14 h-20 rounded-md border border-[var(--border-color)] bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] text-xs">
-                  {item.images?.[0] ? (
-                    <img
-                      src={item.images[0]}
-                      alt={item.name || "Product"}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    "IMG"
-                  )}
+                <div className="w-14 h-20 rounded-md overflow-hidden border border-[var(--border-color)] bg-[var(--bg-main)]">
+                  <ProductImageCarousel
+                    images={item.images}
+                    alt={item.name || "Product"}
+                    className="w-full h-full"
+                    imageClassName="w-full h-full object-cover"
+                    placeholder={
+                      <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)] text-xs">IMG</div>
+                    }
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[var(--text-main)] truncate">{item.name || "Product"}</p>

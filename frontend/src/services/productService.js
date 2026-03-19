@@ -58,6 +58,15 @@ const productService = {
     const response = await axios.get(`${API_URL}?mine=1`, { withCredentials: true });
     return toProductList(response.data);
   },
+  /** Vendor or admin: set product stock (update amount). */
+  updateProductStock: async (productId, stock) => {
+    const response = await axios.put(
+      `${API_URL}/${productId}/stock`,
+      { stock: Number(stock) },
+      { withCredentials: true }
+    );
+    return response.data;
+  },
   rateProduct: async (id, value) => {
     const response = await axios.put(
       `${API_URL}/${id}/rating`,

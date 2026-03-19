@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import ProductImageCarousel from "../../components/shop/ProductImageCarousel";
 
 const AdminProductsView = () => {
   const [products, setProducts] = useState([]);
@@ -141,17 +142,17 @@ const AdminProductsView = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-(--bg-main) border border-(--border-color) shrink-0">
-                          {product.images?.[0] ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                              <ShoppingBag size={20} />
-                            </div>
-                          )}
+                          <ProductImageCarousel
+                            images={product.images}
+                            alt={product.name}
+                            className="w-full h-full"
+                            imageClassName="w-full h-full object-cover"
+                            placeholder={
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <ShoppingBag size={20} />
+                              </div>
+                            }
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-sm text-(--text-main) truncate">
