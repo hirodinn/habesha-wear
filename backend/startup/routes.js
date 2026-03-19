@@ -8,6 +8,24 @@ import carts from "../routes/carts.js";
 import stats from "../routes/stats.js";
 
 export default function (app) {
+  const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", frontendOrigin);
+    res.header("Vary", "Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204);
+    }
+    return next();
+  });
+
   app.use(express.json());
   app.use(cookieParser());
   app.use("/api/users", users);

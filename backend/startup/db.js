@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 export default function () {
+  const mongoUri = process.env.MONGO_URI || "mongodb://localhost/habesha-wear";
   mongoose
-    .connect("mongodb://localhost/habesha-wear")
+    .connect(mongoUri)
     .then(() => console.log(`Connected to habesha wear...`))
     .catch((err) => {
       console.error(
