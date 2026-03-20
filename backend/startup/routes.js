@@ -8,10 +8,17 @@ import carts from "../routes/carts.js";
 import stats from "../routes/stats.js";
 
 export default function (app) {
-  const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://habesha-wear-rjdd.vercel.app",
+    process.env.FRONTEND_URL,
+  ].filter(Boolean);
 
   app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", frontendOrigin);
+    const requestOrigin = req.headers.origin;
+    if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+      res.header("Access-Control-Allow-Origin", requestOrigin || allowedOrigins[0]);
+    }
     res.header("Vary", "Origin");
     res.header("Access-Control-Allow-Credentials", "true");
     res.header(
