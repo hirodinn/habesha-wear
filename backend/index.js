@@ -10,9 +10,7 @@ import mongoose from "mongoose";
 dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
-const SEED_ON_BOOT = String(process.env.SEED_ON_BOOT || "false").toLowerCase() === "true";
-const SEED_FILE_PATH = process.env.SEED_FILE_PATH || "seed/data.json";
-const SEED_FLAG_KEY = process.env.SEED_FLAG_KEY || "initial_seed_v1_done";
+const SEED_FILE_PATH = "seed/data.json";
 
 Joi.objectId = joi(Joi);
 
@@ -67,51 +65,47 @@ const upsertCollection = async (db, collectionName, docs = []) => {
 };
 
 const runSeedIfNeeded = async () => {
-	if (!SEED_ON_BOOT) return;
+	console.log(`[SEED] Starting startup seed from ${SEED_FILE_PATH}`);
 
 	const db = mongoose.connection.db;
-	if (!db) throw new Error("Mongo connection is not ready for seeding.");
+	if (!db) throw new Error("[SEED] Mongo connection is not ready for seeding.");
 
-	const flags = db.collection("system_flags");
-	const alreadySeeded = await flags.findOne({ key: SEED_FLAG_KEY });
-	if (alreadySeeded) {
-		console.log(`Seed skipped: ${SEED_FLAG_KEY} already set.`);
-		return;
-	}
+	const fullSeedPath = path.resolve(process.cwd(), SEED_FILE_PATH);
+	console.log(`[SEED] Reading file: ${fullSeedPath}`);
 
-	const raw = await fs.readFile(path.resolve(process.cwd(), SEED_FILE_PATH), "utf8");
+	const raw = await fs.readFile(fullSeedPath, "utf8");
 	const seed = JSON.parse(raw);
 
+	console.log("[SEED] Upserting users...");
 	const usersCount = await upsertCollection(db, "users", seed.users || []);
+
+	console.log("[SEED] Upserting products...");
 	const productsCount = await upsertCollection(db, "products", seed.products || []);
+
+	console.log("[SEED] Upserting orders...");
 	const ordersCount = await upsertCollection(db, "orders", seed.orders || []);
+
+	console.log("[SEED] Upserting carts...");
 	const cartsCount = await upsertCollection(db, "carts", seed.carts || []);
 
-	await flags.insertOne({
-		key: SEED_FLAG_KEY,
-		createdAt: new Date(),
-		summary: {
-			users: usersCount,
-			products: productsCount,
-			orders: ordersCount,
-			carts: cartsCount,
-		},
-	});
-
-	console.log("Seed import on startup complete.");
+	console.log("[SEED] Seed import complete.");
 	console.log(
-		`users=${usersCount}, products=${productsCount}, orders=${ordersCount}, carts=${cartsCount}`
+		`[SEED] users=${usersCount}, products=${productsCount}, orders=${ordersCount}, carts=${cartsCount}`
 	);
 };
 
 const start = async () => {
 	try {
+		console.log("[BOOT] Starting backend server...");
 		await loadDB();
+		console.log("[BOOT] Database connected.");
 		await runSeedIfNeeded();
+		console.log("[BOOT] Seed step finished.");
 		loadRoutes(app);
 		app.listen(PORT, () => console.log(`connected to port ${PORT}...`));
 	} catch (err) {
-		console.error("Server startup failed:", err.message);
+		console.error("[BOOT] Server startup failed:", err.message);
+		console.error(err);
 		process.exit(1);
 	}
 };
