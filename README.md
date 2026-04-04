@@ -2,6 +2,17 @@
 
 Full-stack ecommerce platform for traditional wear, built with a React + Vite frontend and an Express + MongoDB backend.
 
+## Quick Start
+
+```bash
+# from repo root
+cd backend && npm install && npm run dev
+# open a second terminal
+cd frontend && npm install && npm run dev
+```
+
+Open the app at `http://localhost:5173`.
+
 ## Tech Stack
 
 - Frontend: React 19, Vite, Redux Toolkit, React Router, Axios, Tailwind CSS
@@ -21,6 +32,7 @@ habesha-wear/
 ## Features
 
 - Role-based auth (`customer`, `vendor`, `admin`, `owner`) with HttpOnly JWT cookie
+- New user registrations default to the `customer` role
 - Product catalog with:
   - Featured products
   - Search and category filtering
